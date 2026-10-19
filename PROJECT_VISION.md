@@ -56,23 +56,29 @@ flowchart TD
 
 ---
 
-## IV. 3-TIER `.ai-workspace/` CONTEXT LIFECYCLE
+## IV. UNIFIED SINGLE-FOLDER 3-TIER CONTEXT LIFECYCLE
+
+All generated rules, commands, skills, and 3-tier memory live inside **a single root folder** matching the chosen AI platform (`.cursor/`, `.claude/`, or `.agents/`) so the project root stays 100% clean:
 
 ```text
-.ai-workspace/
-├── config.json                # Workspace settings: active platforms, installed tech skills, workflow mode.
-├── PROJECT_MEMORY.md          # [Tier 1 - Global Map] Always kept concise (< 300 lines).
-│                              # Contains: Tech Stack, Directory Tree, Shared Components/Utils Index, and Feature Index.
-├── CHANGELOG_DOC.md           # [Documentation Export Layer] Structured release & feature log ready for Word/PDF/Wiki export.
-├── sync-state.json            # [Git Sync Checkpoint] Stores { "lastSyncedCommit": "<hash>", "lastSyncedAt": "..." }.
-├── active/                    # [Tier 2 - Active Scratchpad] Holds context for ONLY the single feature currently in progress.
-│   ├── spec.md                # Upon completion (Phase 5), compacted into features/<feature-name>.md
-│   ├── ui-spec.md             # and cleared so the next feature starts with a 100% clean slate.
-│   ├── plan.md
-│   └── review-report.md
-└── features/                  # [Tier 3 - Feature Knowledge Vault] Read on-demand only when updating/fixing that specific feature.
-    ├── auth-login.md          # Top: Current Business Rules & Files. Bottom: Feature Change History.
-    └── ...
+.cursor/ (or .claude/ or .agents/)
+├── rules/ (or agents/ or workflows/)  # Native platform Agent rules & file-glob Tech Skills
+├── commands/                          # Native Slash Commands (/auto, /ba, /arch, /dev, /qa, /doc...)
+└── workspace/                         # 3-Tier Context Memory & Pluggable Tech Skills
+    ├── config.json                    # Workspace settings: active platform, installed tech skills.
+    ├── PROJECT_MEMORY.md              # [Tier 1 - Global Map] Always kept concise (< 300 lines).
+    │                                  # Contains: Tech Stack, Directory Tree, Shared Registry, Feature Index.
+    ├── CHANGELOG_DOC.md               # [Documentation Export Layer] Structured release & feature log.
+    ├── sync-state.json                # [Git Sync Checkpoint] Stores { "lastSyncedCommit": "<hash>" }.
+    ├── skills/                        # Installed Tech Skills (<skill>/SKILL.md)
+    ├── active/                        # [Tier 2 - Active Scratchpad] Holds context for ONLY the active feature.
+    │   ├── spec.md                    # Upon completion (Phase 5), compacted into features/<feature-name>.md
+    │   ├── ui-spec.md                 # and cleared so the next feature starts with a 100% clean slate.
+    │   ├── plan.md
+    │   └── review-report.md
+    └── features/                      # [Tier 3 - Feature Knowledge Vault] Read on-demand per feature.
+        ├── auth-login.md              # Top: Current Business Rules & Files. Bottom: Feature Change History.
+        └── ...
 ```
 
 ---
@@ -92,7 +98,10 @@ flowchart TD
      - `None`: Leave directory structure blank for custom definition.
 3. **Step 3 — Select Tech Skills for Dev Agent (Multi-select: `Space` to toggle, `Enter` to finish):**
    - Pre-selects skills matching Step 2 choices and allows toggling additional skills (`nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`).
-   - Records initial Git `HEAD` commit hash into `.ai-workspace/sync-state.json`.
+   - Records initial Git `HEAD` commit hash into `workspace/sync-state.json`.
+4. **Step 4 — Push to Git or Add to `.gitignore` (`Yes` / `No`):**
+   - **`Yes`:** Keeps the generated platform folder tracked normally in Git for team collaboration.
+   - **`No`:** Automatically appends the generated platform folder (`.cursor/`, `.claude/` + `CLAUDE.md`, or `.agents/` + `AGENTS.md`) to `.gitignore` so the developer can use the AI system locally without polluting a shared repository.
 
 ---
 
@@ -157,7 +166,8 @@ src/
 │       ├── flutter.ts                # Flutter directory tree
 │       └── none.ts                   # Blank/custom fallback directory tree
 └── utils/                            # Core utilities
-    ├── platform-adapter.ts           # Generates .agents/, .cursor/rules/, .claude/, CLAUDE.md, AGENTS.md
+    ├── workspace-paths.ts            # Unified single-folder path resolver (.cursor/workspace, .claude/workspace, .agents/workspace)
+    ├── platform-adapter.ts           # Generates rules, commands, agents, and skills inside the selected platform folder
     ├── tree-scanner.ts               # Directory & package.json/pubspec.yaml scanner
     └── git.ts                        # Git commit inspection, diff generation, and sync-state helpers
 ```
@@ -174,23 +184,22 @@ src/
 > **Instructions for AI Assistant on Another Device:**
 > When the developer pulls this repo on another machine and asks to continue, read this section first to understand what is already built and what can be expanded next.
 
-### ✅ Completed Milestones (v1.0.0 - 2026-10-19)
+### ✅ Completed Milestones (v1.0.x - 2026-10-19)
 - [x] **System Architecture & Blueprint:** Finalized 5 Core Agents (`BA`, `Architect`, `Dev`, `QA`, `Doc Keeper`) + `Master Orchestrator` (`@auto` / `/auto`) + 3 Utility Workflows (`@hotfix`, `@sync`, `@onboard`).
 - [x] **TypeScript CLI Package Scaffolding (`package.json`, `tsconfig.json`, `src/index.ts`):** Built with `commander`, `@clack/prompts`, `fs-extra`, and `picocolors`.
 - [x] **Interactive 3-Step `init` Wizard (`src/commands/init.ts`):**
-  - Step 1: Multi-select platforms (`cursor`, `claude`, `antigravity`, `codex`).
+  - Step 1: Single-select AI platform (`cursor`, `claude`, `antigravity`, `codex`) with concise hints that prevent terminal line-wrapping.
   - Step 2: Existing project (auto-scan) vs. New project (`FE`, `BE`, `Mobile`, `Fullstack`, `None` with sub-options).
-  - Step 3: Interactive multi-select loop for Tech Skills until `DONE`.
+  - Step 3: Multi-select (`Space` to toggle, `Enter` to confirm) for Tech Skills.
+- [x] **Unified Single-Folder Output Architecture (`src/utils/workspace-paths.ts` & `src/utils/platform-adapter.ts`):**
+  - Consolidated all generated files into **1 single root directory** per chosen platform (`.cursor/`, `.claude/`, or `.agents/`), placing the 3-tier memory (`PROJECT_MEMORY.md`, `active/`, `features/`, `skills/`) inside `<platform-dir>/workspace/`.
+  - Added both `.cursor/rules/*.mdc` (`@auto`, `@ba`...) and `.cursor/commands/*.md` (`/auto`, `/ba`...) for Cursor IDE.
 - [x] **CLI Operational Commands:**
   - `src/commands/add-skill.ts`: Add/remove Pluggable Tech Skills at any time.
   - `src/commands/sync.ts`: Git Commit Checkpoint Sync (`lastSyncedCommit..HEAD`) with edge-case handling for uncommitted working tree changes and rewritten Git history (`rebase`/`amend`).
-  - `src/commands/scan.ts` & `src/utils/tree-scanner.ts`: Zero-token project scanner generating `.ai-workspace/scan-report.md`.
+  - `src/commands/scan.ts` & `src/utils/tree-scanner.ts`: Zero-token project scanner generating `<platform-dir>/workspace/scan-report.md`.
   - `src/commands/hotfix.ts`: Fast-Track bugfix workflow generator.
   - `src/commands/update.ts`: Refreshes agent templates and adapters.
-- [x] **Multi-Platform Adapters (`src/utils/platform-adapter.ts`):**
-  - Cursor IDE: `.cursor/rules/*.mdc` (with file-glob auto-matching for Tech Skills).
-  - Claude Code CLI: `CLAUDE.md`, isolated Subagents in `.claude/agents/*.md`, and Slash Commands in `.claude/commands/*.md`.
-  - Google Antigravity & OpenAI Codex: `AGENTS.md`, `.agents/workflows/*.md`, and `.agents/skills/*/SKILL.md`.
 - [x] **English Standardization:** All documentation (`README.md`, `PROJECT_VISION.md`) and all generated Markdown templates (`src/templates/*`) have been converted to professional English.
 - [x] **Modular Template Refactoring (`src/templates/skills/` & `src/templates/project-structures/`):** Split monolithic `tech-skills.ts` and `project-structures.ts` into dedicated per-technology files with barrel `index.ts` exports to prevent bloated files and simplify future maintenance.
 - [x] **NPM Package Naming (`penta-agent-x`) & GitHub Actions Auto-Publish CI/CD (`.github/workflows/publish-npm.yml`):** Finalized package name as `penta-agent-x` (with CLI binaries `penta-agent-x`, `penta-agent`, `penta`, `ai-team`) and configured automated build, auto-patch version bump, and NPM publish on push/merge to `main` / `master`.
@@ -200,6 +209,6 @@ src/
    - Expand each individual file (`nextjs.ts`, `react-native.ts`, `flutter.ts`, `elysiajs.ts`, `nestjs.ts`, `reactjs.ts`) with even deeper project-specific conventions, code snippets, and library-specific rules (e.g., TanStack Query, Zustand, Prisma, Drizzle, Tailwind/NativeWind).
    - Add more modular skills as needed (e.g., `golang.ts`, `python-fastapi.ts`, `graphql.ts`, `supabase.ts`, `turborepo.ts`).
 2. **End-to-End Dogfooding Test:**
-   - Run `npm run build && npm link` and test `penta init`, `penta sync`, and `@auto` on a real sample Next.js or React Native project.
+   - Run `npx penta-agent-x@latest init`, `penta sync`, and `@auto` on a real sample Next.js or React Native project.
 3. **Optional Doc Export Command (`npx penta-agent-x export-doc`):**
-   - Add a CLI command that combines `.ai-workspace/CHANGELOG_DOC.md` and `.ai-workspace/features/*.md` into a single formatted `SYSTEM_DOCUMENTATION.md` (or HTML/PDF) for instant client/manager handover.
+   - Add a CLI command that combines `workspace/CHANGELOG_DOC.md` and `workspace/features/*.md` into a single formatted `SYSTEM_DOCUMENTATION.md` (or HTML/PDF) for instant client/manager handover.

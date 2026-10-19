@@ -1,12 +1,14 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { scanProjectStructure } from '../utils/tree-scanner';
+import { resolveExistingWorkspace } from '../utils/workspace-paths';
 
 export async function runScanCommand(cwd: string = process.cwd()): Promise<void> {
   p.intro(pc.bgCyan(pc.black(' 🔍 PROJECT DIRECTORY & STACK SCANNER ')));
+  const resolved = await resolveExistingWorkspace(cwd);
   const s = p.spinner();
   s.start('Scanning directory tree, dependencies, and shared modules...');
-  const res = await scanProjectStructure(cwd);
+  const res = await scanProjectStructure(cwd, resolved.workspaceRelDir);
   s.stop(pc.green('Project scan complete!'));
 
   p.note(
@@ -16,10 +18,10 @@ export async function runScanCommand(cwd: string = process.cwd()): Promise<void>
           ? pc.green(res.detectedStacks.join(', '))
           : pc.yellow('Custom')
       }`,
-      `• Report saved to: ${pc.underline('.ai-workspace/scan-report.md')}`,
+      `• Report saved to: ${pc.underline(`${resolved.workspaceRelDir}/scan-report.md`)}`,
       '',
       `👉 Type ${pc.bold(pc.green('@onboard'))} (or ${pc.bold(pc.green('/onboard'))}) in your IDE/CLI chat`,
-      `   so the Architect Agent updates ${pc.cyan('.ai-workspace/PROJECT_MEMORY.md')}!`,
+      `   so the Architect Agent updates ${pc.cyan(`${resolved.workspaceRelDir}/PROJECT_MEMORY.md`)}!`,
     ].join('\n'),
     '📄 Scan Summary'
   );

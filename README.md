@@ -15,20 +15,25 @@ When a codebase grows, relying on a single AI Agent in a long chat session inevi
 
 **Penta-Agent-X** solves this through **three core engineering principles**:
 1. **Role-Based Context Isolation (5 Core Agents + 1 Master Orchestrator):** Divides software engineering responsibilities across specialized agents (**BA**, **Architect**, **Dev**, **QA**, **Doc Keeper**) that communicate strictly via structured `.md` artifacts.
-2. **3-Tier Workspace Memory (`.ai-workspace/`):**
+2. **Unified Single-Folder 3-Tier Workspace Memory:**
+   Everything is neatly encapsulated inside your chosen platform's single root folder (`.cursor/`, `.claude/`, or `.agents/`) — zero clutter in your project root:
    ```text
-   .ai-workspace/
-   ├── config.json          # Workspace settings: platforms, installed tech skills
-   ├── PROJECT_MEMORY.md    # [Tier 1] Global project map (< 300 lines) — read first by all agents
-   ├── CHANGELOG_DOC.md     # Living specification & release log ready for Word/PDF/Wiki export
-   ├── sync-state.json      # Git checkpoint tracker ({ "lastSyncedCommit": "<hash>" })
-   ├── active/              # [Tier 2] Scratchpad for ONLY the single feature currently in progress
-   │   ├── spec.md          # Automatically compacted into features/<name>.md and wiped clean
-   │   ├── ui-spec.md       # upon completion so the next feature starts 100% fresh
-   │   ├── plan.md
-   │   └── review-report.md
-   └── features/            # [Tier 3] Permanent feature vault loaded on-demand when updating a feature
-       └── auth-login.md
+   .cursor/ (or .claude/ or .agents/)
+   ├── rules/ (or agents/)  # Native Agent rules (@auto, @ba, @arch, @dev, @qa, @doc)
+   ├── commands/            # Native Slash commands (/auto, /ba, /arch, /dev, /qa, /doc)
+   └── workspace/           # 3-Tier AI Memory & Installed Tech Skills
+       ├── config.json          # Workspace settings & installed tech skills
+       ├── PROJECT_MEMORY.md    # [Tier 1] Global project map (< 300 lines) — read first by all agents
+       ├── CHANGELOG_DOC.md     # Living specification & release log ready for Word/PDF/Wiki export
+       ├── sync-state.json      # Git checkpoint tracker ({ "lastSyncedCommit": "<hash>" })
+       ├── skills/              # Installed Pluggable Tech Skills (nextjs, react-native, flutter...)
+       ├── active/              # [Tier 2] Scratchpad for ONLY the single feature currently in progress
+       │   ├── spec.md          # Automatically compacted into features/<name>.md and wiped clean
+       │   ├── ui-spec.md       # upon completion so the next feature starts 100% fresh
+       │   ├── plan.md
+       │   └── review-report.md
+       └── features/            # [Tier 3] Permanent feature vault loaded on-demand when updating a feature
+           └── auth-login.md
    ```
 3. **Git Commit Checkpoint Sync (`lastSyncedCommit`):** When you write code manually across multiple commits (or `git pull` teammates' commits) without AI, `npx penta-agent-x sync` diffs `lastSyncedCommit..HEAD` so the **Doc Agent** brings your AI memory 100% back in sync.
 
@@ -60,15 +65,17 @@ npm install -g penta-agent-x
 penta init
 ```
 
-### What the 3-Step Interactive `init` Wizard Does:
+### What the 4-Step Interactive `init` Wizard Does:
 1. **Step 1 — Select Target AI Platform:**
    - Choose your AI coding tool: `Cursor IDE` | `Claude Code (CLI)` | `Google Antigravity` | `OpenAI Codex`.
-   - Automatically generates canonical prompts in `.agents/` and the corresponding platform adapter (`.cursor/rules/*.mdc`, `.claude/agents/*.md`, `.claude/commands/*.md`, `CLAUDE.md`, or `AGENTS.md`).
+   - Automatically generates all rules, slash commands, skills, and 3-tier memory inside that platform's single folder (`.cursor/`, `.claude/`, or `.agents/`).
 2. **Step 2 — Select Project Mode:**
-   - **Existing Project (Brownfield):** Runs a zero-token scanner on your directory tree, `package.json`/`pubspec.yaml`, and shared UI/utility folders to generate `.ai-workspace/scan-report.md`. Then run `@onboard` (or `/onboard`) in your chat so the **Architect Agent** populates `PROJECT_MEMORY.md`.
+   - **Existing Project (Brownfield):** Runs a zero-token scanner on your directory tree, `package.json`/`pubspec.yaml`, and shared UI/utility folders to generate `workspace/scan-report.md`. Then run `@onboard` (or `/onboard`) in your chat so the **Architect Agent** populates `PROJECT_MEMORY.md`.
    - **New Project (Greenfield):** Choose from 5 categories (`FE`, `BE`, `Mobile`, `Fullstack`, `None`) and stacks (`Next.js`, `React.js`, `ElysiaJS`, `NestJS`, `React Native`, `Flutter`) to scaffold a standard directory structure inside `PROJECT_MEMORY.md`.
 3. **Step 3 — Select Pluggable Tech Skills for the Dev Agent:**
    - Multi-select (`Space` to toggle, `Enter` to confirm): `nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`.
+4. **Step 4 — Track in Git or Ignore (`Yes` / `No`):**
+   - Choose **`Yes`** to commit the AI workspace to Git and share `PROJECT_MEMORY.md` with your team, or **`No`** to automatically append the directory (e.g., `.cursor/`) to `.gitignore` so it stays 100% local on your machine.
 
 ---
 
@@ -81,7 +88,7 @@ penta init
 | **1. Build a Feature Automatically (A → Z)** | `@auto Build Login with Email & Google [attach UI image]` | Runs the full pipeline automatically: **BA** (`spec.md`) → **Architect** (`plan.md`) → **Dev** (Sequential tasks) → **QA** (Audit & Tests) → **Doc** (Archives to `features/`, updates `PROJECT_MEMORY.md`, records Git commit & cleans `active/`). |
 | **2. Step-by-Step Manual Control** | • `@ba Build Login...`<br>• `@arch Create plan`<br>• `@dev Execute task 1`<br>• `@qa Audit & test`<br>• `@doc Finalize feature` | Press `Ctrl + N` (`Cmd + N`) between steps to start a fresh chat tab with 100% isolated context. |
 | **3. Fast-Track Small Bugfix (`@hotfix`)** | Select code lines (`Ctrl + L`) → Type:<br>`@hotfix Disable submit button while loading` | Bypasses the 5-step ceremony: fixes the selected code directly using your Tech Skill and performs a lightweight memory check. |
-| **4. Onboard an Existing Project** | `@onboard` | Architect Agent reads `.ai-workspace/scan-report.md` and populates `PROJECT_MEMORY.md`. |
+| **4. Onboard an Existing Project** | `@onboard` | Architect Agent reads `workspace/scan-report.md` and populates `PROJECT_MEMORY.md`. |
 | **5. Sync Manual Code Commits** | `@sync` *(or run `npx penta-agent-x sync` first)* | Doc Agent inspects Git history from `lastSyncedCommit..HEAD` and updates `PROJECT_MEMORY.md`, `features/*.md`, and `CHANGELOG_DOC.md`. |
 
 ---
@@ -118,12 +125,12 @@ Use slash commands (`/auto`, `/ba`, `/arch`, `/dev`, `/qa`, `/doc`, `/hotfix`, `
 
 | Command | Alias (Global Install) | Description |
 | :--- | :--- | :--- |
-| `npx penta-agent-x init` | `penta init` | Launches the 3-step interactive wizard to initialize Agents, `.ai-workspace/`, and Tech Skills. |
+| `npx penta-agent-x init` | `penta init` | Launches the 3-step interactive wizard to initialize Agents, `workspace/`, and Tech Skills inside `.cursor/`, `.claude/`, or `.agents/`. |
 | `npx penta-agent-x add-skill [skills...]` | `penta add-skill` | Interactively add or remove Tech Skills (`nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs`). |
-| `npx penta-agent-x sync` | `penta sync` | Checks uncommitted changes and rebase edge cases, then extracts `git diff` from `lastSyncedCommit..HEAD` into `.ai-workspace/sync-diff.md` for `@sync` / `/sync`. |
-| `npx penta-agent-x sync --mark-done` | `penta sync -m` | Updates `lastSyncedCommit` in `.ai-workspace/sync-state.json` to the current `HEAD` commit. |
-| `npx penta-agent-x scan` | `penta scan` | Scans the project directory tree and dependencies (0 tokens) into `.ai-workspace/scan-report.md`. |
-| `npx penta-agent-x hotfix "description"` | `penta hotfix "..."` | Creates a fast-track hotfix ticket in `.ai-workspace/active/hotfix.md` and prints `@hotfix` / `/hotfix` usage. |
+| `npx penta-agent-x sync` | `penta sync` | Checks uncommitted changes and rebase edge cases, then extracts `git diff` from `lastSyncedCommit..HEAD` into `workspace/sync-diff.md` for `@sync` / `/sync`. |
+| `npx penta-agent-x sync --mark-done` | `penta sync -m` | Updates `lastSyncedCommit` in `workspace/sync-state.json` to the current `HEAD` commit. |
+| `npx penta-agent-x scan` | `penta scan` | Scans the project directory tree and dependencies (0 tokens) into `workspace/scan-report.md`. |
+| `npx penta-agent-x hotfix "description"` | `penta hotfix "..."` | Creates a fast-track hotfix ticket in `workspace/active/hotfix.md` and prints `@hotfix` / `/hotfix` usage. |
 | `npx penta-agent-x update` | `penta update` | Refreshes all Agent prompts, platform adapters, and installed Tech Skills to the latest version. |
 
 ---

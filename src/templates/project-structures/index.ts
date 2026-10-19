@@ -23,15 +23,23 @@ export function generateInitialProjectMemory(options: {
   beStack?: string;
   mobileStack?: string;
   installedSkills: string[];
+  workspaceRelDir?: string;
 }): string {
-  const { projectMode, category, feStack, beStack, mobileStack, installedSkills } =
-    options;
+  const {
+    projectMode,
+    category,
+    feStack,
+    beStack,
+    mobileStack,
+    installedSkills,
+    workspaceRelDir = '.cursor/workspace',
+  } = options;
 
   let structureSection = '';
   const stacks: string[] = [];
 
   if (projectMode === 'existing') {
-    structureSection = `> ⚠️ **Existing Project (Brownfield):** An automated structural snapshot has been saved to \`.ai-workspace/scan-report.md\`.
+    structureSection = `> ⚠️ **Existing Project (Brownfield):** An automated structural snapshot has been saved to \`${workspaceRelDir}/scan-report.md\`.
 > Run \`@onboard\` (or \`/onboard\`) in your IDE/CLI chat so the **Architect Agent** can analyze \`scan-report.md\` and populate the exact directory tree here.`;
   } else {
     if (category === 'fe' && feStack && feStack !== 'none') {
@@ -66,7 +74,7 @@ export function generateInitialProjectMemory(options: {
 
 > **Rules for All AI Agents:**
 > 1. Always read this file first to understand the project architecture, reusable shared components/utilities, and feature index.
-> 2. Keep this file **concise (< 300 lines)**. Detailed feature specifications belong in \`.ai-workspace/features/<feature-name>.md\`.
+> 2. Keep this file **concise (< 300 lines)**. Detailed feature specifications belong in \`${workspaceRelDir}/features/<feature-name>.md\`.
 
 ---
 
@@ -95,7 +103,7 @@ ${structureSection}
 ---
 
 ## 4. Feature Index (Knowledge Vault Map)
-*(When modifying or fixing an existing feature, BA and Architect Agents must read its corresponding file in \`.ai-workspace/features/\`)*
+*(When modifying or fixing an existing feature, BA and Architect Agents must read its corresponding file in \`${workspaceRelDir}/features/\`)*
 
 | Feature / Module Name | Status | Detailed Spec File | Key Source Files |
 | :--- | :--- | :--- | :--- |
@@ -103,7 +111,9 @@ ${structureSection}
 `;
 }
 
-export function generateInitialChangelogDoc(): string {
+export function generateInitialChangelogDoc(
+  workspaceRelDir: string = '.cursor/workspace'
+): string {
   const today = new Date().toISOString().split('T')[0];
   return `# LIVING SYSTEM SPECIFICATION & CHANGELOG DOCUMENTATION
 
@@ -113,7 +123,7 @@ export function generateInitialChangelogDoc(): string {
 ---
 
 ## [${today}] - Initialized Multi-Agent Workspace
-- **Action:** Initialized \`.ai-workspace/\` 3-tier memory architecture and 5 specialized AI Agents.
+- **Action:** Initialized \`${workspaceRelDir}/\` 3-tier memory architecture and 5 specialized AI Agents.
 - **Status:** Ready to track upcoming features and architectural changes.
 `;
 }

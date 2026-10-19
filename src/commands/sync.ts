@@ -14,6 +14,7 @@ import {
   readSyncState,
   writeSyncState,
 } from '../utils/git';
+import { resolveExistingWorkspace } from '../utils/workspace-paths';
 
 export async function runSyncCommand(
   options: { markDone?: boolean } = {},
@@ -38,6 +39,9 @@ export async function runSyncCommand(
     process.exit(1);
   }
 
+  const resolved = await resolveExistingWorkspace(cwd);
+  const wsRel = resolved.workspaceRelDir;
+
   if (options.markDone) {
     const now = new Date().toISOString();
     await writeSyncState(
@@ -46,21 +50,22 @@ export async function runSyncCommand(
         lastSyncedAt: now,
         note: 'Manually marked synced via CLI --mark-done',
       },
-      cwd
+      cwd,
+      wsRel
     );
-    const diffFile = path.join(cwd, '.ai-workspace', 'sync-diff.md');
+    const diffFile = path.join(resolved.workspaceAbsDir, 'sync-diff.md');
     if (await fs.pathExists(diffFile)) {
       await fs.remove(diffFile);
     }
     p.outro(
       pc.green(
-        `✅ Updated lastSyncedCommit to current HEAD (${headCommit.slice(0, 8)})!`
+        `✅ Updated lastSyncedCommit to current HEAD (${headCommit.slice(0, 8)}) in ${wsRel}/sync-state.json!`
       )
     );
     return;
   }
 
-  const syncState = await readSyncState(cwd);
+  const syncState = await readSyncState(cwd, wsRel);
   let fromRef = syncState.lastSyncedCommit;
   let includeWorkingTree = false;
 
@@ -104,7 +109,7 @@ export async function runSyncCommand(
   // Edge Case 2: Missing lastSyncedCommit or commit rewritten by rebase/amend
   if (!fromRef || !commitExists(fromRef, cwd)) {
     const reason = !fromRef
-      ? 'No previous `lastSyncedCommit` found in `.ai-workspace/sync-state.json`.'
+      ? `No previous \`lastSyncedCommit\` found in \`${wsRel}/sync-state.json\`.`
       : `Previous checkpoint commit (${fromRef.slice(0, 8)}) no longer exists in Git history (likely due to rebase/reset/amend).`;
 
     p.log.warn(pc.yellow(reason));
@@ -140,13 +145,13 @@ export async function runSyncCommand(
 
   const commitLog = getCommitLogBetween(fromRef, 'HEAD', cwd);
   const diffStat = getDiffStatBetween(fromRef, 'HEAD', cwd);
-  const detailedDiff = getDetailedDiff(fromRef, includeWorkingTree, cwd);
+  const detailedDiff = getDetailedDiff(fromRef, includeWorkingTree, cwd, wsRel);
   const uncommittedSummary = includeWorkingTree ? getUncommittedStatus(cwd) : '';
 
   const syncReport = `# GIT COMMIT CHECKPOINT SYNC REPORT
 
 > Generated automatically by \`npx penta-agent-x sync\`.
-> Run \`@sync\` (in Cursor) or \`/sync\` (in Claude Code / Antigravity) so the **Doc / Memory Keeper Agent** reads this report and updates \`PROJECT_MEMORY.md\`, \`features/*.md\`, and \`CHANGELOG_DOC.md\`.
+> Run \`@sync\` (in Cursor) or \`/sync\` (in Claude Code / Antigravity) so the **Doc / Memory Keeper Agent** reads this report and updates \`${wsRel}/PROJECT_MEMORY.md\`, \`${wsRel}/features/*.md\`, and \`${wsRel}/CHANGELOG_DOC.md\`.
 
 ## 1. Checkpoint Metadata
 - **Previous Synced Commit (\`lastSyncedCommit\`):** \`${fromRef}\`
@@ -176,13 +181,13 @@ ${detailedDiff || '(No diff content)'}
 ---
 ## Instructions for Doc / Memory Keeper Agent (\`@sync\` / \`/sync\`):
 1. Analyze all code changes above.
-2. Register any new Shared Components, Hooks, Utilities, or directory updates in \`.ai-workspace/PROJECT_MEMORY.md\`.
-3. Create or update affected feature documentation in \`.ai-workspace/features/<feature-name>.md\`.
-4. Append a summary entry to \`.ai-workspace/CHANGELOG_DOC.md\`.
-5. Update \`"lastSyncedCommit": "${headCommit}"\` in \`.ai-workspace/sync-state.json\` and delete this temporary \`sync-diff.md\` file once complete!
+2. Register any new Shared Components, Hooks, Utilities, or directory updates in \`${wsRel}/PROJECT_MEMORY.md\`.
+3. Create or update affected feature documentation in \`${wsRel}/features/<feature-name>.md\`.
+4. Append a summary entry to \`${wsRel}/CHANGELOG_DOC.md\`.
+5. Update \`"lastSyncedCommit": "${headCommit}"\` in \`${wsRel}/sync-state.json\` and delete this temporary \`sync-diff.md\` file once complete!
 `;
 
-  const syncDiffPath = path.join(cwd, '.ai-workspace', 'sync-diff.md');
+  const syncDiffPath = path.join(resolved.workspaceAbsDir, 'sync-diff.md');
   await fs.ensureDir(path.dirname(syncDiffPath));
   await fs.writeFile(syncDiffPath, syncReport, 'utf-8');
 
@@ -190,11 +195,11 @@ ${detailedDiff || '(No diff content)'}
 
   p.note(
     [
-      `📄 Diff report saved to: ${pc.underline('.ai-workspace/sync-diff.md')}`,
+      `📄 Diff report saved to: ${pc.underline(`${wsRel}/sync-diff.md`)}`,
       `📌 Checkpoint range: ${pc.yellow(fromRef.slice(0, 8))} -> ${pc.green(headCommit.slice(0, 8))}`,
       '',
       `👉 ${pc.bold('Next Step:')} Open your IDE/CLI chat and type ${pc.bold(pc.green('@sync'))} (or ${pc.bold(pc.green('/sync'))})`,
-      `   so the Doc Agent updates ${pc.cyan('PROJECT_MEMORY.md')}, ${pc.cyan('features/*.md')}, and saves the new commit checkpoint!`,
+      `   so the Doc Agent updates ${pc.cyan(`${wsRel}/PROJECT_MEMORY.md`)}, ${pc.cyan(`${wsRel}/features/*.md`)}, and saves the new commit checkpoint!`,
     ].join('\n'),
     '🚀 Ready to Synchronize AI Memory'
   );

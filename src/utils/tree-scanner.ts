@@ -142,7 +142,8 @@ function findSharedCandidates(
 }
 
 export async function scanProjectStructure(
-  cwd: string = process.cwd()
+  cwd: string = process.cwd(),
+  workspaceRelDir: string = '.cursor/workspace'
 ): Promise<ScanResult> {
   const detectedStacks: string[] = [];
   const dependencies: string[] = [];
@@ -189,7 +190,7 @@ export async function scanProjectStructure(
   const reportMarkdown = `# AUTOMATED PROJECT STRUCTURE SCAN REPORT
 
 > Generated automatically by the CLI Scanner (0 tokens).
-> Run \`@onboard\` (or \`/onboard\`) so the **Architect Agent** analyzes this report and populates \`.ai-workspace/PROJECT_MEMORY.md\`.
+> Run \`@onboard\` (or \`/onboard\`) so the **Architect Agent** analyzes this report and populates \`${workspaceRelDir}/PROJECT_MEMORY.md\`.
 
 ## 1. Detected Tech Stack
 ${detectedStacks.length > 0 ? detectedStacks.map((s) => `- **${s}**`).join('\n') : '- Custom / Unspecified stack'}
@@ -210,11 +211,11 @@ ${sharedFiles.length > 0 ? sharedFiles.join('\n') : '- No standard shared folder
 ## Instructions for Architect Agent (\`project-onboarding\`):
 1. Review the directory tree and shared folders above.
 2. Inspect 1–2 representative source files to infer existing Coding Conventions.
-3. Populate \`.ai-workspace/PROJECT_MEMORY.md\` (Tech Stack, Directory Structure, Shared Registry, and Feature Index).
+3. Populate \`${workspaceRelDir}/PROJECT_MEMORY.md\` (Tech Stack, Directory Structure, Shared Registry, and Feature Index).
 4. Delete this temporary \`scan-report.md\` file once \`PROJECT_MEMORY.md\` is updated.
 `;
 
-  const outPath = path.join(cwd, '.ai-workspace', 'scan-report.md');
+  const outPath = path.join(cwd, workspaceRelDir, 'scan-report.md');
   await fs.ensureDir(path.dirname(outPath));
   await fs.writeFile(outPath, reportMarkdown, 'utf-8');
 

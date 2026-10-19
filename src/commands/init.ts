@@ -16,6 +16,7 @@ import { AVAILABLE_TECH_SKILLS } from '../templates/skills';
 import { applyPlatformAdapters } from '../utils/platform-adapter';
 import { scanProjectStructure } from '../utils/tree-scanner';
 import { getCurrentCommit, writeSyncState } from '../utils/git';
+import { getPlatformRootDir, getWorkspaceRelDir } from '../utils/workspace-paths';
 
 function checkCancel(value: unknown): void {
   if (p.isCancel(value)) {
@@ -51,7 +52,7 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
       {
         value: 'antigravity',
         label: 'Google Antigravity',
-        hint: '.agents/workflows & skills',
+        hint: '.agents/skills & rules',
       },
       {
         value: 'codex',
@@ -90,11 +91,14 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
   let mobileStack = 'none';
   const suggestedSkills = new Set<TechSkillId>();
 
+  const workspaceRelDir = getWorkspaceRelDir(selectedPlatform);
+  const platformRootDir = getPlatformRootDir(selectedPlatform);
+
   if (projectMode === 'existing') {
     // Step 2.1: Existing Project -> Run automated scanner
     const s = p.spinner();
     s.start('Scanning directory structure, dependencies, and shared modules...');
-    const scanRes = await scanProjectStructure(cwd);
+    const scanRes = await scanProjectStructure(cwd, workspaceRelDir);
     s.stop(
       `Project scan complete! Detected: ${
         scanRes.detectedStacks.length > 0
@@ -214,12 +218,35 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
   checkCancel(finalSkills);
 
   // ============================================================================
-  // GENERATE WORKSPACE & PLATFORM ADAPTERS
+  // STEP 4: Track in Git or Add to .gitignore (Yes / No)
+  // ============================================================================
+  const pushToGit = (await p.select({
+    message: 'Step 4: Do you want to push the AI workspace to Git?',
+    options: [
+      {
+        value: true,
+        label: 'Yes — Track in Git',
+        hint: 'Share AI rules & memory with team',
+      },
+      {
+        value: false,
+        label: 'No  — Add to .gitignore',
+        hint: 'Keep local only on your machine',
+      },
+    ],
+    initialValue: true,
+  })) as boolean;
+  checkCancel(pushToGit);
+
+  // ============================================================================
+  // GENERATE UNIFIED WORKSPACE & PLATFORM ADAPTER
   // ============================================================================
   const spinner = p.spinner();
-  spinner.start('Generating 5-Agent system, 3-tier memory (.ai-workspace), and adapters...');
+  spinner.start(
+    `Generating 5-Agent system & 3-tier memory inside ${pc.cyan(platformRootDir + '/')}...`
+  );
 
-  const workspaceDir = path.join(cwd, '.ai-workspace');
+  const workspaceDir = path.join(cwd, workspaceRelDir);
   await fs.ensureDir(path.join(workspaceDir, 'active'));
   await fs.ensureDir(path.join(workspaceDir, 'features'));
 
@@ -262,12 +289,17 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
     beStack,
     mobileStack,
     installedSkills: finalSkills,
+    workspaceRelDir,
   });
   await fs.writeFile(memoryPath, memoryContent, 'utf-8');
 
   const changelogPath = path.join(workspaceDir, 'CHANGELOG_DOC.md');
   if (!(await fs.pathExists(changelogPath))) {
-    await fs.writeFile(changelogPath, generateInitialChangelogDoc(), 'utf-8');
+    await fs.writeFile(
+      changelogPath,
+      generateInitialChangelogDoc(workspaceRelDir),
+      'utf-8'
+    );
   }
 
   const currentHead = getCurrentCommit(cwd);
@@ -277,15 +309,56 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
       lastSyncedAt: now,
       note: 'Initial commit checkpoint recorded at init',
     },
-    cwd
+    cwd,
+    workspaceRelDir
   );
 
   await applyPlatformAdapters(cwd, selectedPlatforms, finalSkills);
 
-  spinner.stop(pc.green('Multi-Agent Workspace initialized successfully!'));
+  if (!pushToGit) {
+    const gitignorePath = path.join(cwd, '.gitignore');
+    let gitignoreContent = '';
+    if (await fs.pathExists(gitignorePath)) {
+      gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
+    }
+
+    const entriesToIgnore: string[] = [`${platformRootDir}/`];
+    if (selectedPlatform === 'claude') {
+      entriesToIgnore.push('CLAUDE.md');
+    } else if (selectedPlatform === 'antigravity' || selectedPlatform === 'codex') {
+      entriesToIgnore.push('AGENTS.md');
+    }
+
+    const existingLines = new Set(
+      gitignoreContent
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+    );
+    const missingEntries = entriesToIgnore.filter(
+      (entry) =>
+        !existingLines.has(entry) &&
+        !existingLines.has(entry.replace(/\/$/, '')) &&
+        !existingLines.has(`/${entry}`)
+    );
+
+    if (missingEntries.length > 0) {
+      const prefix =
+        gitignoreContent.length > 0 && !gitignoreContent.endsWith('\n')
+          ? '\n'
+          : '';
+      const block = `${prefix}\n# AI Agent Workspace (penta-agent-x)\n${missingEntries.join('\n')}\n`;
+      await fs.writeFile(gitignorePath, gitignoreContent + block, 'utf-8');
+    }
+  }
+
+  spinner.stop(
+    pc.green(`All files generated inside ${pc.bold(platformRootDir + '/')}!`)
+  );
 
   const nextSteps: string[] = [
-    `${pc.bold('1. Enabled Platforms:')} ${pc.cyan(selectedPlatforms.join(', '))}`,
+    `${pc.bold('1. Unified Directory:')} ${pc.cyan(platformRootDir + '/')} (${
+      pushToGit ? pc.green('Tracked in Git') : pc.yellow('Added to .gitignore')
+    })`,
     `${pc.bold('2. Installed Tech Skills:')} ${
       finalSkills.length > 0 ? pc.green(finalSkills.join(', ')) : pc.yellow('(None)')
     }`,
@@ -298,9 +371,9 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
     nextSteps.push(
       '',
       pc.bgYellow(pc.black(' ⚡ NEXT STEP FOR EXISTING PROJECT: ')),
-      `  Structural scan saved to ${pc.underline('.ai-workspace/scan-report.md')}.`,
+      `  Structural scan saved to ${pc.underline(`${workspaceRelDir}/scan-report.md`)}.`,
       `  👉 Open your IDE/CLI chat and type: ${pc.bold(pc.green('@onboard'))} (or ${pc.bold(pc.green('/onboard'))})`,
-      `     so the Architect Agent populates ${pc.underline('PROJECT_MEMORY.md')}!`
+      `     so the Architect Agent populates ${pc.underline(`${workspaceRelDir}/PROJECT_MEMORY.md`)}!`
     );
   } else {
     nextSteps.push(

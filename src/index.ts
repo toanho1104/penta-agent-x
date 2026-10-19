@@ -19,7 +19,7 @@ program
 program
   .command('init')
   .description(
-    'Initialize the 5 AI Agents, Master Orchestrator (@auto), 3-tier memory (.ai-workspace), and Tech Skills'
+    'Initialize the 5 AI Agents, Master Orchestrator (@auto), 3-tier memory (workspace/), and Tech Skills'
   )
   .action(async () => {
     await runInitCommand();
@@ -42,7 +42,7 @@ program
   )
   .option(
     '-m, --mark-done',
-    'Mark current HEAD commit as synced in .ai-workspace/sync-state.json'
+    'Mark current HEAD commit as synced in workspace/sync-state.json'
   )
   .action(async (options: { markDone?: boolean }) => {
     await runSyncCommand(options);
@@ -51,7 +51,7 @@ program
 program
   .command('scan')
   .description(
-    'Scan project directory tree, dependencies, and shared folders into .ai-workspace/scan-report.md'
+    'Scan project directory tree, dependencies, and shared folders into workspace/scan-report.md'
   )
   .action(async () => {
     await runScanCommand();

@@ -5,22 +5,23 @@ import path from 'path';
 import { TechSkillId, WorkspaceConfig } from '../types';
 import { AVAILABLE_TECH_SKILLS, TECH_SKILLS_REGISTRY } from '../templates/skills';
 import { applyPlatformAdapters } from '../utils/platform-adapter';
+import { resolveExistingWorkspace } from '../utils/workspace-paths';
 
 export async function runAddSkillCommand(
   skillArgs: string[] = [],
   cwd: string = process.cwd()
 ): Promise<void> {
-  const configPath = path.join(cwd, '.ai-workspace', 'config.json');
-  if (!(await fs.pathExists(configPath))) {
+  const resolved = await resolveExistingWorkspace(cwd);
+  if (!resolved.exists) {
     console.log(
       pc.red(
-        '❌ Workspace not initialized (`.ai-workspace/config.json` missing). Please run `npx penta-agent-x init` first!'
+        '❌ Workspace not initialized (`config.json` missing). Please run `npx penta-agent-x init` first!'
       )
     );
     process.exit(1);
   }
 
-  const config: WorkspaceConfig = await fs.readJson(configPath);
+  const config: WorkspaceConfig = await fs.readJson(resolved.configPath);
   const currentSkills = new Set<TechSkillId>(config.installedTechSkills || []);
 
   if (skillArgs.length > 0) {
@@ -67,11 +68,11 @@ export async function runAddSkillCommand(
   const updatedSkills = Array.from(currentSkills);
   config.installedTechSkills = updatedSkills;
   config.updatedAt = new Date().toISOString();
-  await fs.writeJson(configPath, config, { spaces: 2 });
+  await fs.writeJson(resolved.configPath, config, { spaces: 2 });
 
   await applyPlatformAdapters(cwd, config.platforms, updatedSkills);
 
-  const memoryPath = path.join(cwd, '.ai-workspace', 'PROJECT_MEMORY.md');
+  const memoryPath = path.join(resolved.workspaceAbsDir, 'PROJECT_MEMORY.md');
   if (await fs.pathExists(memoryPath)) {
     let mem = await fs.readFile(memoryPath, 'utf-8');
     const skillLine = `- **Active Tech Skills for Dev/QA Agent:** ${

@@ -90,12 +90,13 @@ export function getDiffStatBetween(
 export function getDetailedDiff(
   fromRef: string,
   includeWorkingTree: boolean = false,
-  cwd: string = process.cwd()
+  cwd: string = process.cwd(),
+  workspaceRelDir: string = '.cursor/workspace'
 ): string {
   try {
     const target = includeWorkingTree ? fromRef : `${fromRef}..HEAD`;
     const rawDiff = runGit(
-      `git diff ${target} -- . ":(exclude)package-lock.json" ":(exclude)pnpm-lock.yaml" ":(exclude)yarn.lock" ":(exclude).ai-workspace/scan-report.md" ":(exclude).ai-workspace/sync-diff.md"`,
+      `git diff ${target} -- . ":(exclude)package-lock.json" ":(exclude)pnpm-lock.yaml" ":(exclude)yarn.lock" ":(exclude)${workspaceRelDir}/scan-report.md" ":(exclude)${workspaceRelDir}/sync-diff.md"`,
       cwd
     );
     const maxChars = 35000;
@@ -112,9 +113,10 @@ export function getDetailedDiff(
 }
 
 export async function readSyncState(
-  cwd: string = process.cwd()
+  cwd: string = process.cwd(),
+  workspaceRelDir: string = '.cursor/workspace'
 ): Promise<SyncState> {
-  const filePath = path.join(cwd, SYNC_STATE_PATH);
+  const filePath = path.join(cwd, workspaceRelDir, 'sync-state.json');
   if (await fs.pathExists(filePath)) {
     try {
       return await fs.readJson(filePath);
@@ -130,9 +132,10 @@ export async function readSyncState(
 
 export async function writeSyncState(
   state: SyncState,
-  cwd: string = process.cwd()
+  cwd: string = process.cwd(),
+  workspaceRelDir: string = '.cursor/workspace'
 ): Promise<void> {
-  const filePath = path.join(cwd, SYNC_STATE_PATH);
+  const filePath = path.join(cwd, workspaceRelDir, 'sync-state.json');
   await fs.ensureDir(path.dirname(filePath));
   await fs.writeJson(filePath, state, { spaces: 2 });
 }
