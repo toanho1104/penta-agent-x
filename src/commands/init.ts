@@ -97,10 +97,13 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
   if (projectMode === 'existing') {
     // Step 2.1: Existing Project -> Run automated scanner
     const s = p.spinner();
-    s.start('Scanning directory structure, dependencies, and shared modules...');
+    s.start('Scanning directory structure, sub-apps, and existing features...');
     const scanRes = await scanProjectStructure(cwd, workspaceRelDir);
+    const appSummary = scanRes.isMultiApp
+      ? `${scanRes.subApps.length} sub-apps (${scanRes.subApps.map((a) => a.name).join(', ')})`
+      : 'Single-app';
     s.stop(
-      `Project scan complete! Detected: ${
+      `Scan complete! [${pc.cyan(appSummary)} | ${pc.magenta(`${scanRes.totalFeaturesCount} feature(s)`)}] Stack: ${
         scanRes.detectedStacks.length > 0
           ? pc.green(scanRes.detectedStacks.join(', '))
           : pc.yellow('Custom stack')
@@ -371,9 +374,9 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
     nextSteps.push(
       '',
       pc.bgYellow(pc.black(' ⚡ NEXT STEP FOR EXISTING PROJECT: ')),
-      `  Structural scan saved to ${pc.underline(`${workspaceRelDir}/scan-report.md`)}.`,
+      `  Structural & feature scan saved to ${pc.underline(`${workspaceRelDir}/scan-report.md`)}.`,
       `  👉 Open your IDE/CLI chat and type: ${pc.bold(pc.green('@onboard'))} (or ${pc.bold(pc.green('/onboard'))})`,
-      `     so the Architect Agent populates ${pc.underline(`${workspaceRelDir}/PROJECT_MEMORY.md`)}!`
+      `     so the Agent populates ${pc.underline(`${workspaceRelDir}/PROJECT_MEMORY.md`)} AND generates all existing feature flows in ${pc.underline(`${workspaceRelDir}/features/`)}!`
     );
   } else {
     nextSteps.push(

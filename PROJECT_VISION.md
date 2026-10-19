@@ -187,17 +187,23 @@ src/
 ### ✅ Completed Milestones (v1.0.x - 2026-10-19)
 - [x] **System Architecture & Blueprint:** Finalized 5 Core Agents (`BA`, `Architect`, `Dev`, `QA`, `Doc Keeper`) + `Master Orchestrator` (`@auto` / `/auto`) + 3 Utility Workflows (`@hotfix`, `@sync`, `@onboard`).
 - [x] **TypeScript CLI Package Scaffolding (`package.json`, `tsconfig.json`, `src/index.ts`):** Built with `commander`, `@clack/prompts`, `fs-extra`, and `picocolors`.
-- [x] **Interactive 3-Step `init` Wizard (`src/commands/init.ts`):**
+- [x] **Interactive 4-Step `init` Wizard (`src/commands/init.ts`):**
   - Step 1: Single-select AI platform (`cursor`, `claude`, `antigravity`, `codex`) with concise hints that prevent terminal line-wrapping.
   - Step 2: Existing project (auto-scan) vs. New project (`FE`, `BE`, `Mobile`, `Fullstack`, `None` with sub-options).
   - Step 3: Multi-select (`Space` to toggle, `Enter` to confirm) for Tech Skills.
+  - Step 4: Platform-agnostic Git tracking choice (`Yes — Track in Git` vs. `No — Add to .gitignore`).
 - [x] **Unified Single-Folder Output Architecture (`src/utils/workspace-paths.ts` & `src/utils/platform-adapter.ts`):**
   - Consolidated all generated files into **1 single root directory** per chosen platform (`.cursor/`, `.claude/`, or `.agents/`), placing the 3-tier memory (`PROJECT_MEMORY.md`, `active/`, `features/`, `skills/`) inside `<platform-dir>/workspace/`.
   - Added both `.cursor/rules/*.mdc` (`@auto`, `@ba`...) and `.cursor/commands/*.md` (`/auto`, `/ba`...) for Cursor IDE.
+  - Updated Google Antigravity & OpenAI Codex adapter to generate modern `.agents/skills/<slug>/SKILL.md` (providing native `/auto`, `/ba`, `/onboard` slash commands and semantic discovery in Antigravity 2.0).
+- [x] **Deep Sub-App & Existing Feature Onboarding (`src/utils/tree-scanner.ts` & `@onboard`):**
+  - `scanProjectStructure` automatically detects whether a project is a Single-App or Multi-App/Monorepo (`apps/*`, `packages/*`, `frontend/`, `backend/`, `mobile/`, etc.) and discovers existing features/modules/routes per sub-app.
+  - `@onboard` populates `PROJECT_MEMORY.md` (grouping Section 4 Feature Index by Sub-App if multi-app) AND generates individual feature vault files in `workspace/features/<feature-slug>.md` (or `workspace/features/<app-name>/<feature-slug>.md` for multi-app projects) documenting each existing feature's **Current End-to-End Flow**.
+  - All downstream agents (`@auto`, `@ba`, `@arch`, `@dev`, `@hotfix`) follow a **2-Step Feature Lookup Protocol**: scan `PROJECT_MEMORY.md` first -> if a requirement matches an existing feature, immediately read its `workspace/features/.../*.md` file and trace its current code flow before planning or modifying code.
 - [x] **CLI Operational Commands:**
   - `src/commands/add-skill.ts`: Add/remove Pluggable Tech Skills at any time.
   - `src/commands/sync.ts`: Git Commit Checkpoint Sync (`lastSyncedCommit..HEAD`) with edge-case handling for uncommitted working tree changes and rewritten Git history (`rebase`/`amend`).
-  - `src/commands/scan.ts` & `src/utils/tree-scanner.ts`: Zero-token project scanner generating `<platform-dir>/workspace/scan-report.md`.
+  - `src/commands/scan.ts` & `src/utils/tree-scanner.ts`: Zero-token project, sub-app & feature scanner generating `<platform-dir>/workspace/scan-report.md`.
   - `src/commands/hotfix.ts`: Fast-Track bugfix workflow generator.
   - `src/commands/update.ts`: Refreshes agent templates and adapters.
 - [x] **English Standardization:** All documentation (`README.md`, `PROJECT_VISION.md`) and all generated Markdown templates (`src/templates/*`) have been converted to professional English.

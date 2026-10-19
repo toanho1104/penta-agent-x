@@ -39,8 +39,8 @@ export function generateInitialProjectMemory(options: {
   const stacks: string[] = [];
 
   if (projectMode === 'existing') {
-    structureSection = `> ⚠️ **Existing Project (Brownfield):** An automated structural snapshot has been saved to \`${workspaceRelDir}/scan-report.md\`.
-> Run \`@onboard\` (or \`/onboard\`) in your IDE/CLI chat so the **Architect Agent** can analyze \`scan-report.md\` and populate the exact directory tree here.`;
+    structureSection = `> ⚠️ **Existing Project (Brownfield):** An automated structural & feature snapshot has been saved to \`${workspaceRelDir}/scan-report.md\`.
+> Run \`@onboard\` (or \`/onboard\`) in your IDE/CLI chat so the **Architect Agent** analyzes \`scan-report.md\`, populates the directory tree here, AND creates detailed feature flow files in \`${workspaceRelDir}/features/\`!`;
   } else {
     if (category === 'fe' && feStack && feStack !== 'none') {
       stacks.push(`Frontend: ${feStack}`);
@@ -72,9 +72,10 @@ export function generateInitialProjectMemory(options: {
 
   return `# PROJECT MEMORY (Single Source of Truth)
 
-> **Rules for All AI Agents:**
-> 1. Always read this file first to understand the project architecture, reusable shared components/utilities, and feature index.
-> 2. Keep this file **concise (< 300 lines)**. Detailed feature specifications belong in \`${workspaceRelDir}/features/<feature-name>.md\`.
+> **Rules for All AI Agents (2-Step Feature & Flow Lookup):**
+> 1. **Step 1:** Always read this file first to understand the project architecture, reusable shared components/utilities, and the **Section 4 Feature Index** (grouped by Sub-App if this is a multi-app project).
+> 2. **Step 2:** When a User request matches, modifies, or relates to an existing feature listed in **Section 4**, **immediately read its detailed spec in \`${workspaceRelDir}/features/<feature-slug>.md\`** (or \`${workspaceRelDir}/features/<app-name>/<feature-slug>.md\`) to trace its **Current End-to-End Flow** before designing or writing code!
+> 3. Keep this file **concise (< 300 lines)**. Detailed feature flows belong in \`${workspaceRelDir}/features/\`.
 
 ---
 
@@ -102,12 +103,12 @@ ${structureSection}
 
 ---
 
-## 4. Feature Index (Knowledge Vault Map)
-*(When modifying or fixing an existing feature, BA and Architect Agents must read its corresponding file in \`${workspaceRelDir}/features/\`)*
+## 4. Feature Index (Knowledge Vault Map — Grouped by Sub-App if Multi-App)
+*(If this project has multiple sub-apps like \`web\`, \`api\`, \`mobile\`, group tables under \`### 4.x Sub-App: <app-name>\` and store detailed feature files at \`${workspaceRelDir}/features/<app-name>/<feature-slug>.md\`. When a User describes a feature that matches an entry below, Agents MUST read its Detailed Spec File to inspect the current flow!)*
 
-| Feature / Module Name | Status | Detailed Spec File | Key Source Files |
-| :--- | :--- | :--- | :--- |
-| *(No features recorded yet)* | — | — | — |
+| Sub-App / Scope | Feature / Module Name | Status | Detailed Spec File (Current Flow) | Key Source Files |
+| :--- | :--- | :--- | :--- | :--- |
+| *(Run \`@onboard\` or \`@auto\`)* | — | — | — | — |
 `;
 }
 
