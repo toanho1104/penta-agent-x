@@ -77,16 +77,17 @@ export async function runSyncCommand(
       options: [
         {
           value: 'include',
-          label: '1. Include uncommitted changes in this sync report (Recommended)',
-          hint: 'AI will analyze both committed and uncommitted changes',
+          label: '1. Include uncommitted changes (Recommended)',
+          hint: 'Committed + working tree',
         },
         {
           value: 'committed-only',
-          label: '2. Sync committed changes only (Ignore uncommitted working tree)',
+          label: '2. Sync committed changes only',
+          hint: 'Ignore working tree',
         },
         {
           value: 'abort',
-          label: '3. Abort so I can run `git commit` first',
+          label: '3. Abort (run git commit first)',
         },
       ],
     });

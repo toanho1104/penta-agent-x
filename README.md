@@ -1,7 +1,8 @@
 # 🚀 Penta-Agent-X (`penta-agent-x`)
 
 [![npm version](https://img.shields.io/npm/v/penta-agent-x.svg?style=flat-square&color=00b4d8)](https://www.npmjs.com/package/penta-agent-x)
-[![npm downloads](https://img.shields.io/npm/dm/penta-agent-x.svg?style=flat-square&color=10b981)](https://www.npmjs.com/package/penta-agent-x)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![Platforms](https://img.shields.io/badge/Platforms-Cursor%20%7C%20Claude%20%7C%20Antigravity%20%7C%20Codex-10b981.svg?style=flat-square)](https://www.npmjs.com/package/penta-agent-x)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 A production-grade **5-Agent + Master Orchestrator & Pluggable Tech Skill Framework** designed to eliminate **Context Rot** in growing codebases. Built for seamless cross-platform use across **Cursor IDE**, **Claude Code (CLI)**, **Google Antigravity**, and **OpenAI Codex**.
@@ -60,14 +61,14 @@ penta init
 ```
 
 ### What the 3-Step Interactive `init` Wizard Does:
-1. **Step 1 — Select Target AI Platforms:**
-   - Multi-select: `Cursor IDE` | `Claude Code (CLI)` | `Google Antigravity` | `OpenAI Codex`.
-   - Automatically generates canonical prompts in `.agents/` and platform adapters (`.cursor/rules/*.mdc`, `.claude/agents/*.md`, `.claude/commands/*.md`, `CLAUDE.md`, `AGENTS.md`).
+1. **Step 1 — Select Target AI Platform:**
+   - Choose your AI coding tool: `Cursor IDE` | `Claude Code (CLI)` | `Google Antigravity` | `OpenAI Codex`.
+   - Automatically generates canonical prompts in `.agents/` and the corresponding platform adapter (`.cursor/rules/*.mdc`, `.claude/agents/*.md`, `.claude/commands/*.md`, `CLAUDE.md`, or `AGENTS.md`).
 2. **Step 2 — Select Project Mode:**
    - **Existing Project (Brownfield):** Runs a zero-token scanner on your directory tree, `package.json`/`pubspec.yaml`, and shared UI/utility folders to generate `.ai-workspace/scan-report.md`. Then run `@onboard` (or `/onboard`) in your chat so the **Architect Agent** populates `PROJECT_MEMORY.md`.
    - **New Project (Greenfield):** Choose from 5 categories (`FE`, `BE`, `Mobile`, `Fullstack`, `None`) and stacks (`Next.js`, `React.js`, `ElysiaJS`, `NestJS`, `React Native`, `Flutter`) to scaffold a standard directory structure inside `PROJECT_MEMORY.md`.
 3. **Step 3 — Select Pluggable Tech Skills for the Dev Agent:**
-   - Interactively toggle one or multiple Tech Skills (`nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`) until you select **`DONE`**.
+   - Multi-select (`Space` to toggle, `Enter` to confirm): `nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`.
 
 ---
 

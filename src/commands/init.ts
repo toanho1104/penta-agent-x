@@ -33,37 +33,36 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
   );
 
   // ============================================================================
-  // STEP 1: Select Target AI Platforms (Cursor, Claude, Codex, Antigravity)
+  // STEP 1: Select Target AI Platform (Single choice: Cursor, Claude, Antigravity, Codex)
   // ============================================================================
-  const selectedPlatforms = (await p.multiselect({
-    message:
-      'Step 1: Which AI platforms are you using? (Space to toggle, Enter to confirm)',
+  const selectedPlatform = (await p.select({
+    message: 'Step 1: Which AI platform are you using?',
     options: [
       {
         value: 'cursor',
         label: 'Cursor IDE',
-        hint: 'Generates .cursor/rules/*.mdc (@auto, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync)',
+        hint: '.cursor/rules/*.mdc',
       },
       {
         value: 'claude',
         label: 'Claude Code (CLI)',
-        hint: 'Generates CLAUDE.md, .claude/agents/ (Subagents) & .claude/commands/ (/auto, /ba...)',
+        hint: 'CLAUDE.md & .claude/',
       },
       {
         value: 'antigravity',
         label: 'Google Antigravity',
-        hint: 'Generates .agents/workflows/, .agents/skills/ & AGENTS.md',
+        hint: '.agents/workflows & skills',
       },
       {
         value: 'codex',
         label: 'OpenAI Codex',
-        hint: 'Generates AGENTS.md & .agents/skills/',
+        hint: 'AGENTS.md & .agents/skills',
       },
     ],
-    required: true,
-    initialValues: ['cursor', 'claude'],
-  })) as AIPlatform[];
-  checkCancel(selectedPlatforms);
+    initialValue: 'cursor',
+  })) as AIPlatform;
+  checkCancel(selectedPlatform);
+  const selectedPlatforms: AIPlatform[] = [selectedPlatform];
 
   // ============================================================================
   // STEP 2: New Project (Greenfield) vs Existing Project (Brownfield)
@@ -74,12 +73,12 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
       {
         value: 'new',
         label: '1. New Project (Greenfield)',
-        hint: 'Choose FE / BE / Mobile / Fullstack preset to scaffold standard directory structure',
+        hint: 'Scaffold standard directory tree',
       },
       {
         value: 'existing',
         label: '2. Existing Project (Brownfield)',
-        hint: 'Automatically scan current folder tree, UI & shared files for AI onboarding',
+        hint: 'Auto-scan current codebase',
       },
     ],
   })) as 'new' | 'existing';
@@ -119,26 +118,26 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
     category = (await p.select({
       message: 'Step 2.2: Select project category:',
       options: [
-        { value: 'fe', label: '1. Frontend (FE)', hint: 'Next.js, React.js, None' },
+        { value: 'fe', label: '1. Frontend (FE)', hint: 'Next.js, React.js' },
         {
           value: 'be',
           label: '2. Backend (BE)',
-          hint: 'Next.js / NestJS, ElysiaJS, None',
+          hint: 'Next.js, NestJS, ElysiaJS',
         },
         {
           value: 'mobile',
           label: '3. Mobile App',
-          hint: 'React Native, Flutter, None',
+          hint: 'React Native, Flutter',
         },
         {
           value: 'fullstack',
-          label: '4. Fullstack (Web FE + BE)',
-          hint: 'Select both FE and BE stacks',
+          label: '4. Fullstack (FE + BE)',
+          hint: 'Combine Web FE & BE',
         },
         {
           value: 'none',
-          label: '5. None (Blank directory structure)',
-          hint: 'Define custom structure later',
+          label: '5. None (Blank)',
+          hint: 'Custom structure',
         },
       ],
     })) as ProjectCategory;
@@ -199,52 +198,20 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
   }
 
   // ============================================================================
-  // STEP 3: Select Tech Skills for Dev Agent (Loop until DONE)
+  // STEP 3: Select Tech Skills for Dev Agent (Space to toggle, Enter to confirm)
   // ============================================================================
-  const selectedSkills = new Set<TechSkillId>(suggestedSkills);
-
-  let choosingSkills = true;
-  while (choosingSkills) {
-    const currentList =
-      selectedSkills.size > 0
-        ? Array.from(selectedSkills).join(', ')
-        : 'None selected';
-
-    const action = (await p.select({
-      message: `Step 3: Select Tech Skills for Dev Agent [Selected: ${pc.cyan(currentList)}]`,
-      options: [
-        ...AVAILABLE_TECH_SKILLS.map((sk) => {
-          const isAdded = selectedSkills.has(sk.id);
-          return {
-            value: sk.id,
-            label: `${isAdded ? pc.green('✔ [Selected]') : '[ + ]'} ${sk.name} (${sk.id})`,
-            hint: sk.description,
-          };
-        }),
-        {
-          value: '__DONE__',
-          label: pc.bold(
-            pc.green('✅ DONE - Confirm selected skills and initialize workspace')
-          ),
-          hint: 'Proceed with initialization',
-        },
-      ],
-    })) as string;
-    checkCancel(action);
-
-    if (action === '__DONE__') {
-      choosingSkills = false;
-    } else {
-      const skillId = action as TechSkillId;
-      if (selectedSkills.has(skillId)) {
-        selectedSkills.delete(skillId);
-      } else {
-        selectedSkills.add(skillId);
-      }
-    }
-  }
-
-  const finalSkills = Array.from(selectedSkills);
+  const finalSkills = (await p.multiselect({
+    message:
+      'Step 3: Select Tech Skills for Dev Agent (Space to toggle, Enter to finish)',
+    options: AVAILABLE_TECH_SKILLS.map((sk) => ({
+      value: sk.id,
+      label: sk.name,
+      hint: sk.category,
+    })),
+    required: false,
+    initialValues: Array.from(suggestedSkills),
+  })) as TechSkillId[];
+  checkCancel(finalSkills);
 
   // ============================================================================
   // GENERATE WORKSPACE & PLATFORM ADAPTERS

@@ -42,46 +42,25 @@ export async function runAddSkillCommand(
   } else {
     p.intro(pc.bgCyan(pc.black(' 🧩 MANAGE PLUGGABLE TECH SKILLS FOR DEV AGENT ')));
 
-    let choosing = true;
-    while (choosing) {
-      const listStr =
-        currentSkills.size > 0
-          ? Array.from(currentSkills).join(', ')
-          : 'None';
+    const picked = (await p.multiselect({
+      message: 'Select Tech Skills (Space to toggle, Enter to save)',
+      options: AVAILABLE_TECH_SKILLS.map((sk) => ({
+        value: sk.id,
+        label: sk.name,
+        hint: sk.category,
+      })),
+      required: false,
+      initialValues: Array.from(currentSkills),
+    })) as TechSkillId[];
 
-      const choice = (await p.select({
-        message: `Toggle Tech Skills to install/remove [Active: ${pc.cyan(listStr)}]`,
-        options: [
-          ...AVAILABLE_TECH_SKILLS.map((sk) => {
-            const installed = currentSkills.has(sk.id);
-            return {
-              value: sk.id,
-              label: `${installed ? pc.green('✔ [Installed]') : '[ + ]'} ${sk.name} (${sk.id})`,
-              hint: sk.description,
-            };
-          }),
-          {
-            value: '__DONE__',
-            label: pc.bold(pc.green('✅ DONE - Save changes and update adapters')),
-          },
-        ],
-      })) as string;
+    if (p.isCancel(picked)) {
+      p.cancel('Operation cancelled.');
+      process.exit(0);
+    }
 
-      if (p.isCancel(choice)) {
-        p.cancel('Operation cancelled.');
-        process.exit(0);
-      }
-
-      if (choice === '__DONE__') {
-        choosing = false;
-      } else {
-        const sId = choice as TechSkillId;
-        if (currentSkills.has(sId)) {
-          currentSkills.delete(sId);
-        } else {
-          currentSkills.add(sId);
-        }
-      }
+    currentSkills.clear();
+    for (const sId of picked) {
+      currentSkills.add(sId);
     }
   }
 

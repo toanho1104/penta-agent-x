@@ -79,9 +79,9 @@ flowchart TD
 
 ## V. INTERACTIVE INITIALIZATION WIZARD (`npx ai-team init`)
 
-1. **Step 1 — Select AI Platforms (Multi-select):**
+1. **Step 1 — Select AI Platform (Single-select):**
    - Options: `Cursor` | `Claude Code` | `Google Antigravity` | `OpenAI Codex`
-   - Generates `.agents/` core files and platform-specific adapters (`.cursor/rules/`, `.claude/agents/` + `.claude/commands/`, `CLAUDE.md`, `AGENTS.md`).
+   - Generates `.agents/` core files and the selected platform adapter (`.cursor/rules/`, `.claude/agents/` + `.claude/commands/`, `CLAUDE.md`, `AGENTS.md`).
 2. **Step 2 — Select Project Status:**
    - **Branch 2.1 — Existing Project (Brownfield):** Automatically runs the zero-token project scanner to produce `.ai-workspace/scan-report.md`, then instructs the user to run `@onboard` (or `/onboard`) so the **Architect Agent** populates `PROJECT_MEMORY.md`.
    - **Branch 2.2 — New Project (Greenfield):** Presents 5 project categories to pre-populate baseline directory structures in `PROJECT_MEMORY.md`:
@@ -90,7 +90,7 @@ flowchart TD
      - `Mobile`: `React Native` | `Flutter` | `None`
      - `Fullstack`: Select `FE` + Select `BE`
      - `None`: Leave directory structure blank for custom definition.
-3. **Step 3 — Select Tech Skills for Dev Agent (Multi-select loop until `DONE`):**
+3. **Step 3 — Select Tech Skills for Dev Agent (Multi-select: `Space` to toggle, `Enter` to finish):**
    - Pre-selects skills matching Step 2 choices and allows toggling additional skills (`nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`).
    - Records initial Git `HEAD` commit hash into `.ai-workspace/sync-state.json`.
 
