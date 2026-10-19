@@ -12,7 +12,7 @@ import {
   generateInitialChangelogDoc,
   generateInitialProjectMemory,
 } from '../templates/project-structures';
-import { AVAILABLE_TECH_SKILLS } from '../templates/tech-skills';
+import { AVAILABLE_TECH_SKILLS } from '../templates/skills';
 import { applyPlatformAdapters } from '../utils/platform-adapter';
 import { scanProjectStructure } from '../utils/tree-scanner';
 import { getCurrentCommit, writeSyncState } from '../utils/git';

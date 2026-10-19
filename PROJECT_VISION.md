@@ -121,7 +121,55 @@ flowchart TD
 
 ---
 
-## VIII. IMPLEMENTATION PROGRESS & HANDOFF LOG (FOR CONTINUATION)
+## VIII. CLI SOURCE CODE ARCHITECTURE & MODULARITY RULES (`src/`)
+
+> **Architectural Rule for AI Assistants & Contributors:**
+> Never bundle multiple Tech Skills or Project Structure templates into a single monolithic file. Each skill and each project structure must live in its own dedicated file inside `src/templates/skills/` and `src/templates/project-structures/` respectively, and be re-exported via `index.ts`.
+
+```text
+src/
+├── index.ts                          # CLI Entrypoint (Commander.js definitions)
+├── types.ts                          # Shared TypeScript interfaces & union types
+├── commands/                         # CLI command handlers
+│   ├── init.ts                       # 3-Step interactive initialization wizard
+│   ├── add-skill.ts                  # Add/remove Pluggable Tech Skills
+│   ├── sync.ts                       # Git Commit Checkpoint Sync (lastSyncedCommit..HEAD)
+│   ├── scan.ts                       # Zero-token codebase tree & dependency scanner
+│   ├── hotfix.ts                     # Fast-Track bugfix workflow generator
+│   └── update.ts                     # Refreshes agents, workflows, and installed skills
+├── templates/                        # Modular Markdown & Prompt templates
+│   ├── agents.ts                     # 5 Core Agents + Master Orchestrator (@auto) + 3 Utility Workflows
+│   ├── skills/                       # Individual Pluggable Tech Skill definitions (1 file per skill)
+│   │   ├── index.ts                  # Barrel registry: TECH_SKILLS_REGISTRY & AVAILABLE_TECH_SKILLS
+│   │   ├── nextjs.ts                 # Next.js (App Router) skill
+│   │   ├── react-native.ts           # React Native & Expo skill
+│   │   ├── reactjs.ts                # React.js SPA skill
+│   │   ├── elysiajs.ts               # ElysiaJS & Bun skill
+│   │   ├── nestjs.ts                 # NestJS skill
+│   │   └── flutter.ts                # Flutter & Dart skill
+│   └── project-structures/           # Individual project folder tree templates (1 file per stack)
+│       ├── index.ts                  # Barrel registry: STRUCTURE_TEMPLATES & memory/changelog generators
+│       ├── nextjs.ts                 # Next.js directory tree
+│       ├── reactjs.ts                # React.js directory tree
+│       ├── nestjs.ts                 # NestJS directory tree
+│       ├── elysiajs.ts               # ElysiaJS directory tree
+│       ├── react-native.ts           # React Native directory tree
+│       ├── flutter.ts                # Flutter directory tree
+│       └── none.ts                   # Blank/custom fallback directory tree
+└── utils/                            # Core utilities
+    ├── platform-adapter.ts           # Generates .agents/, .cursor/rules/, .claude/, CLAUDE.md, AGENTS.md
+    ├── tree-scanner.ts               # Directory & package.json/pubspec.yaml scanner
+    └── git.ts                        # Git commit inspection, diff generation, and sync-state helpers
+```
+
+### How to Add a New Tech Skill or Stack in the Future:
+1. **Register the ID:** Add the new skill key to `TechSkillId` in `src/types.ts`.
+2. **Create Skill File:** Create `src/templates/skills/<new-skill>.ts` exporting `<newSkill>Skill: TechSkillDefinition`, then register it in `src/templates/skills/index.ts`.
+3. **Create Project Structure File (Optional):** Create `src/templates/project-structures/<new-stack>.ts` and register it in `src/templates/project-structures/index.ts`.
+
+---
+
+## IX. IMPLEMENTATION PROGRESS & HANDOFF LOG (FOR CONTINUATION)
 
 > **Instructions for AI Assistant on Another Device:**
 > When the developer pulls this repo on another machine and asks to continue, read this section first to understand what is already built and what can be expanded next.
@@ -144,12 +192,13 @@ flowchart TD
   - Claude Code CLI: `CLAUDE.md`, isolated Subagents in `.claude/agents/*.md`, and Slash Commands in `.claude/commands/*.md`.
   - Google Antigravity & OpenAI Codex: `AGENTS.md`, `.agents/workflows/*.md`, and `.agents/skills/*/SKILL.md`.
 - [x] **English Standardization:** All documentation (`README.md`, `PROJECT_VISION.md`) and all generated Markdown templates (`src/templates/*`) have been converted to professional English.
+- [x] **Modular Template Refactoring (`src/templates/skills/` & `src/templates/project-structures/`):** Split monolithic `tech-skills.ts` and `project-structures.ts` into dedicated per-technology files with barrel `index.ts` exports to prevent bloated files and simplify future maintenance.
 
 ### 🔜 Upcoming Roadmap / Next Steps (To Continue at Home)
 1. **Finalize Package & Repo Naming:** Update `"name"` and `"bin"` in `package.json` once the final repo/NPM name is chosen, then run `npm run build`.
-2. **Deepen Tech Skill Templates (`src/templates/tech-skills.ts`):**
-   - Expand `nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs` with even deeper project-specific conventions, code snippets, and library-specific rules (e.g., TanStack Query, Zustand, Prisma, Drizzle, Tailwind/NativeWind).
-   - Add more modular skills as needed (e.g., `golang`, `python-fastapi`, `graphql`, `supabase`, `turborepo`).
+2. **Deepen Tech Skill Templates (`src/templates/skills/*.ts`):**
+   - Expand each individual file (`nextjs.ts`, `react-native.ts`, `flutter.ts`, `elysiajs.ts`, `nestjs.ts`, `reactjs.ts`) with even deeper project-specific conventions, code snippets, and library-specific rules (e.g., TanStack Query, Zustand, Prisma, Drizzle, Tailwind/NativeWind).
+   - Add more modular skills as needed (e.g., `golang.ts`, `python-fastapi.ts`, `graphql.ts`, `supabase.ts`, `turborepo.ts`).
 3. **End-to-End Dogfooding Test:**
    - Run `npm run build && npm link` and test `ai-team init`, `ai-team sync`, and `@auto` on a real sample Next.js or React Native project.
 4. **Optional Doc Export Command (`npx ai-team export-doc`):**

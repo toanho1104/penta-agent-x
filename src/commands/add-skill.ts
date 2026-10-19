@@ -3,7 +3,7 @@ import pc from 'picocolors';
 import fs from 'fs-extra';
 import path from 'path';
 import { TechSkillId, WorkspaceConfig } from '../types';
-import { AVAILABLE_TECH_SKILLS, TECH_SKILLS_REGISTRY } from '../templates/tech-skills';
+import { AVAILABLE_TECH_SKILLS, TECH_SKILLS_REGISTRY } from '../templates/skills';
 import { applyPlatformAdapters } from '../utils/platform-adapter';
 
 export async function runAddSkillCommand(

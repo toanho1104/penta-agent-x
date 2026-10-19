@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { AIPlatform, TechSkillId } from '../types';
 import { CORE_AGENTS, UTILITY_WORKFLOWS, AgentTemplate } from '../templates/agents';
-import { TECH_SKILLS_REGISTRY } from '../templates/tech-skills';
+import { TECH_SKILLS_REGISTRY } from '../templates/skills';
 
 export async function generateCanonicalAgentsAndSkills(
   cwd: string,
