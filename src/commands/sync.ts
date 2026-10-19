@@ -144,7 +144,7 @@ export async function runSyncCommand(
 
   const syncReport = `# GIT COMMIT CHECKPOINT SYNC REPORT
 
-> Generated automatically by \`npx ai-team sync\`.
+> Generated automatically by \`npx penta-agent-x sync\`.
 > Run \`@sync\` (in Cursor) or \`/sync\` (in Claude Code / Antigravity) so the **Doc / Memory Keeper Agent** reads this report and updates \`PROJECT_MEMORY.md\`, \`features/*.md\`, and \`CHANGELOG_DOC.md\`.
 
 ## 1. Checkpoint Metadata

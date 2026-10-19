@@ -14,7 +14,7 @@ export async function runAddSkillCommand(
   if (!(await fs.pathExists(configPath))) {
     console.log(
       pc.red(
-        '❌ Workspace not initialized (`.ai-workspace/config.json` missing). Please run `npx ai-team init` first!'
+        '❌ Workspace not initialized (`.ai-workspace/config.json` missing). Please run `npx penta-agent-x init` first!'
       )
     );
     process.exit(1);

@@ -342,7 +342,7 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
       `  • Full Auto-Pilot (A -> Z):    Type ${pc.green('@auto <feature description>')} (or ${pc.green('/auto')})`,
       `  • Step-by-Step Control:        Type ${pc.cyan('@ba')} -> ${pc.cyan('@arch')} -> ${pc.cyan('@dev')} -> ${pc.cyan('@qa')} -> ${pc.cyan('@doc')}`,
       `  • Fast-Track Bugfix:           Type ${pc.yellow('@hotfix <bug description>')}`,
-      `  • Sync Manual Git Commits:     Run ${pc.magenta('npx ai-team sync')} or type ${pc.magenta('@sync')}`
+      `  • Sync Manual Git Commits:     Run ${pc.magenta('npx penta-agent-x sync')} or type ${pc.magenta('@sync')}`
     );
   }
 

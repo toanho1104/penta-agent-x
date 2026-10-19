@@ -19,8 +19,7 @@
   },
   "files": [
     "dist",
-    "README.md",
-    "PROJECT_VISION.md"
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",

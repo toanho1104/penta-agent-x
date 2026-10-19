@@ -9,7 +9,7 @@ export async function runUpdateCommand(cwd: string = process.cwd()): Promise<voi
   if (!(await fs.pathExists(configPath))) {
     console.log(
       pc.red(
-        '❌ Missing `.ai-workspace/config.json`. Please run `npx ai-team init` first!'
+        '❌ Missing `.ai-workspace/config.json`. Please run `npx penta-agent-x init` first!'
       )
     );
     process.exit(1);
