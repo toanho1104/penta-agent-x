@@ -1,6 +1,6 @@
 {
   "name": "penta-agent-x",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Penta-Agent-X (5 Core AI Agents + Master Orchestrator) & Pluggable Tech Skill Framework for Cursor, Claude Code, Antigravity, and Codex",
   "main": "dist/index.js",
   "bin": {
