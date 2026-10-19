@@ -1,6 +1,6 @@
-# 🚀 AI Agent Skill & Multi-Agent System CLI (`ai-agent-skill-cli`)
+# 🚀 Penta-Agent-X (`penta-agent-x`) — Multi-Agent & Tech Skill CLI
 
-A production-grade **Multi-Agent Orchestration & Pluggable Tech Skill Framework** designed to eliminate **Context Rot** in growing codebases. Built for seamless cross-platform use across **Cursor IDE**, **Claude Code (CLI)**, **Google Antigravity**, and **OpenAI Codex**.
+A production-grade **5-Agent + Master Orchestrator & Pluggable Tech Skill Framework** designed to eliminate **Context Rot** in growing codebases. Built for seamless cross-platform use across **Cursor IDE**, **Claude Code (CLI)**, **Google Antigravity**, and **OpenAI Codex**.
 
 ---
 
@@ -15,17 +15,19 @@ This framework solves the problem through **three core engineering principles**:
    - `active/`: Temporary scratchpad (`spec.md`, `ui-spec.md`, `plan.md`, `review-report.md`) for **only the single feature currently in progress**. Automatically wiped clean upon feature completion so every new feature starts with a fresh, lightweight context.
    - `features/<feature-name>.md`: Long-term feature knowledge vault loaded on-demand only when modifying or fixing that specific feature.
    - `CHANGELOG_DOC.md`: Living specification and release log formatted for direct export to **Word / PDF / Notion / Wiki**.
-3. **Git Commit Checkpoint Sync (`lastSyncedCommit`):** When you write code manually across multiple commits (or `git pull` teammates' commits) without AI, `npx ai-team sync` diffs `lastSyncedCommit..HEAD` so the **Doc Agent** brings your AI memory 100% back in sync.
+3. **Git Commit Checkpoint Sync (`lastSyncedCommit`):** When you write code manually across multiple commits (or `git pull` teammates' commits) without AI, `npx penta-agent-x sync` diffs `lastSyncedCommit..HEAD` so the **Doc Agent** brings your AI memory 100% back in sync.
 
 ---
 
 ## 🛠️ 2. Installation & Interactive Initialization (`init`)
 
-### Run via `npx` (or local CLI):
+### Run via `npx` (or global install):
 ```bash
-npx ai-agent-skill-cli init
-# Or using the short alias:
-npx ai-team init
+npx penta-agent-x init
+
+# Or install globally to use short aliases (penta / penta-agent / ai-team):
+npm install -g penta-agent-x
+penta init
 ```
 
 ### The 3-Step Interactive `init` Wizard:
@@ -49,7 +51,7 @@ npx ai-team init
 | **2. Step-by-Step Manual Control** | • `@ba Build Login...`<br>• `@arch Create plan`<br>• `@dev Execute task 1`<br>• `@qa Audit & test`<br>• `@doc Finalize feature` | Press `Ctrl + N` (`Cmd + N`) between steps to start a fresh chat tab with 100% isolated context. |
 | **3. Fast-Track Small Bugfix (`@hotfix`)** | Select code lines (`Ctrl + L`) -> Type:<br>`@hotfix Disable submit button while loading` | Bypasses the 5-step ceremony: fixes the selected code directly using your Tech Skill and performs a lightweight memory check. |
 | **4. Onboard an Existing Project** | `@onboard` | Architect Agent reads `.ai-workspace/scan-report.md` and populates `PROJECT_MEMORY.md`. |
-| **5. Sync Manual Code Commits** | `@sync` *(or run `npx ai-team sync` first)* | Doc Agent inspects Git history from `lastSyncedCommit..HEAD` and updates `PROJECT_MEMORY.md`, `features/*.md`, and `CHANGELOG_DOC.md`. |
+| **5. Sync Manual Code Commits** | `@sync` *(or run `npx penta-agent-x sync` first)* | Doc Agent inspects Git history from `lastSyncedCommit..HEAD` and updates `PROJECT_MEMORY.md`, `features/*.md`, and `CHANGELOG_DOC.md`. |
 
 ---
 
@@ -80,17 +82,17 @@ When `Claude` is selected during `init`, the CLI generates **5 isolated Subagent
 
 ---
 
-## 🧰 4. CLI Command Reference (`npx ai-team ...`)
+## 🧰 4. CLI Command Reference (`npx penta-agent-x ...`)
 
 | Command | Description |
 | :--- | :--- |
-| `npx ai-team init` | Launches the 3-step interactive wizard to initialize Agents, `.ai-workspace/`, and Tech Skills. |
-| `npx ai-team add-skill [skills...]` | Interactively add or remove Tech Skills (`nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs`). Example: `npx ai-team add-skill nextjs react-native`. |
-| `npx ai-team sync` | Checks uncommitted changes and rebase edge cases, then extracts `git diff` from `lastSyncedCommit..HEAD` into `.ai-workspace/sync-diff.md` for `@sync` / `/sync`. |
-| `npx ai-team sync --mark-done` | Updates `lastSyncedCommit` in `.ai-workspace/sync-state.json` to the current `HEAD` commit. |
-| `npx ai-team scan` | Scans the project directory tree and dependencies (0 tokens) into `.ai-workspace/scan-report.md`. |
-| `npx ai-team hotfix "bug description"` | Creates a fast-track hotfix ticket in `.ai-workspace/active/hotfix.md` and prints `@hotfix` / `/hotfix` usage. |
-| `npx ai-team update` | Refreshes all Agent prompts, platform adapters, and installed Tech Skills to the latest version. |
+| `npx penta-agent-x init` | Launches the 3-step interactive wizard to initialize Agents, `.ai-workspace/`, and Tech Skills. |
+| `npx penta-agent-x add-skill [skills...]` | Interactively add or remove Tech Skills (`nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs`). Example: `npx penta-agent-x add-skill nextjs react-native`. |
+| `npx penta-agent-x sync` | Checks uncommitted changes and rebase edge cases, then extracts `git diff` from `lastSyncedCommit..HEAD` into `.ai-workspace/sync-diff.md` for `@sync` / `/sync`. |
+| `npx penta-agent-x sync --mark-done` | Updates `lastSyncedCommit` in `.ai-workspace/sync-state.json` to the current `HEAD` commit. |
+| `npx penta-agent-x scan` | Scans the project directory tree and dependencies (0 tokens) into `.ai-workspace/scan-report.md`. |
+| `npx penta-agent-x hotfix "bug description"` | Creates a fast-track hotfix ticket in `.ai-workspace/active/hotfix.md` and prints `@hotfix` / `/hotfix` usage. |
+| `npx penta-agent-x update` | Refreshes all Agent prompts, platform adapters, and installed Tech Skills to the latest version. |
 
 ---
 
@@ -110,12 +112,11 @@ ai-team init
 ```
 
 ### Adding or Customizing Tech Skills:
-1. Open [`src/templates/tech-skills.ts`](file:///c:/Users/toanha/Desktop/cty/aiAgentSkill/src/templates/tech-skills.ts).
-2. Add or update skill definitions inside `TECH_SKILLS_REGISTRY`.
+1. Create or edit a skill file inside `src/templates/skills/<skill-name>.ts`.
+2. Register the skill inside `src/templates/skills/index.ts` and `src/types.ts`.
 3. Run `npm run build` to compile.
 
-### Publishing to NPM:
-```bash
-npm login
-npm publish --access public
-```
+### Automated CI/CD Publishing to NPM (GitHub Actions):
+- Workflow file: `.github/workflows/publish-npm.yml`
+- Every push or merge into `main` / `master` automatically installs dependencies, compiles TypeScript (`npm run build`), checks if the version in `package.json` already exists on NPM (and auto-bumps `patch` version if needed), and publishes to NPM using `secrets.NPM_TOKEN`.
+

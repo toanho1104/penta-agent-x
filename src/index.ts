@@ -10,9 +10,9 @@ import { runUpdateCommand } from './commands/update';
 const program = new Command();
 
 program
-  .name('ai-team')
+  .name('penta-agent-x')
   .description(
-    'Multi-Agent & Pluggable Tech Skill Framework for Cursor, Claude Code, Antigravity, and Codex'
+    'Penta-Agent-X (5 Core AI Agents + Master Orchestrator) & Pluggable Tech Skill Framework for Cursor, Claude Code, Antigravity, and Codex'
   )
   .version('1.0.0');
 

@@ -193,13 +193,13 @@ src/
   - Google Antigravity & OpenAI Codex: `AGENTS.md`, `.agents/workflows/*.md`, and `.agents/skills/*/SKILL.md`.
 - [x] **English Standardization:** All documentation (`README.md`, `PROJECT_VISION.md`) and all generated Markdown templates (`src/templates/*`) have been converted to professional English.
 - [x] **Modular Template Refactoring (`src/templates/skills/` & `src/templates/project-structures/`):** Split monolithic `tech-skills.ts` and `project-structures.ts` into dedicated per-technology files with barrel `index.ts` exports to prevent bloated files and simplify future maintenance.
+- [x] **NPM Package Naming (`penta-agent-x`) & GitHub Actions Auto-Publish CI/CD (`.github/workflows/publish-npm.yml`):** Finalized package name as `penta-agent-x` (with CLI binaries `penta-agent-x`, `penta-agent`, `penta`, `ai-team`) and configured automated build, auto-patch version bump, and NPM publish on push/merge to `main` / `master`.
 
 ### 🔜 Upcoming Roadmap / Next Steps (To Continue at Home)
-1. **Finalize Package & Repo Naming:** Update `"name"` and `"bin"` in `package.json` once the final repo/NPM name is chosen, then run `npm run build`.
-2. **Deepen Tech Skill Templates (`src/templates/skills/*.ts`):**
+1. **Deepen Tech Skill Templates (`src/templates/skills/*.ts`):**
    - Expand each individual file (`nextjs.ts`, `react-native.ts`, `flutter.ts`, `elysiajs.ts`, `nestjs.ts`, `reactjs.ts`) with even deeper project-specific conventions, code snippets, and library-specific rules (e.g., TanStack Query, Zustand, Prisma, Drizzle, Tailwind/NativeWind).
    - Add more modular skills as needed (e.g., `golang.ts`, `python-fastapi.ts`, `graphql.ts`, `supabase.ts`, `turborepo.ts`).
-3. **End-to-End Dogfooding Test:**
-   - Run `npm run build && npm link` and test `ai-team init`, `ai-team sync`, and `@auto` on a real sample Next.js or React Native project.
-4. **Optional Doc Export Command (`npx ai-team export-doc`):**
+2. **End-to-End Dogfooding Test:**
+   - Run `npm run build && npm link` and test `penta init`, `penta sync`, and `@auto` on a real sample Next.js or React Native project.
+3. **Optional Doc Export Command (`npx penta-agent-x export-doc`):**
    - Add a CLI command that combines `.ai-workspace/CHANGELOG_DOC.md` and `.ai-workspace/features/*.md` into a single formatted `SYSTEM_DOCUMENTATION.md` (or HTML/PDF) for instant client/manager handover.

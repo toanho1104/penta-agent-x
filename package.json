@@ -1,11 +1,21 @@
 {
-  "name": "ai-agent-skill-cli",
+  "name": "penta-agent-x",
   "version": "1.0.0",
-  "description": "Multi-Agent & Pluggable Tech Skill Framework for Cursor, Claude Code, Antigravity, and Codex",
+  "description": "Penta-Agent-X (5 Core AI Agents + Master Orchestrator) & Pluggable Tech Skill Framework for Cursor, Claude Code, Antigravity, and Codex",
   "main": "dist/index.js",
   "bin": {
-    "ai-agent-skill": "./dist/index.js",
+    "penta-agent-x": "./dist/index.js",
+    "penta-agent": "./dist/index.js",
+    "penta": "./dist/index.js",
     "ai-team": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toanho1104/penta-agent-x.git"
+  },
+  "homepage": "https://github.com/toanho1104/penta-agent-x#readme",
+  "bugs": {
+    "url": "https://github.com/toanho1104/penta-agent-x/issues"
   },
   "files": [
     "dist",
@@ -19,6 +29,8 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
+    "penta-agent-x",
+    "penta-agent",
     "ai-agent",
     "multi-agent",
     "cursor-rules",
@@ -28,7 +40,7 @@
     "context-engineering",
     "skills"
   ],
-  "author": "",
+  "author": "toanho1104",
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^0.9.1",
