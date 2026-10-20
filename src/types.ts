@@ -8,7 +8,9 @@ export type TechSkillId =
   | 'reactjs'
   | 'elysiajs'
   | 'flutter'
-  | 'nestjs';
+  | 'nestjs'
+  | 'bootstrap'
+  | 'angularjs';
 
 export interface WorkspaceConfig {
   version: string;
