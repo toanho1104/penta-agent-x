@@ -277,12 +277,14 @@ async function generateAntigravityAndCodexAdapter(
   const skillsRel = getSkillsRelDir(platform);
   const skillsDir = path.join(cwd, skillsRel);
   const rulesDir = path.join(cwd, '.agents', 'rules');
+  const workflowsDir = path.join(cwd, '.agents', 'workflows');
   await fs.ensureDir(skillsDir);
   await fs.ensureDir(rulesDir);
+  await fs.ensureDir(workflowsDir);
+
+  const allWorkflows = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
 
   // 1. Modern Antigravity & Codex Skills (.agents/skills/<slug>/SKILL.md)
-  // In Antigravity 2.0, skills provide both first-class slash commands (/auto, /ba, /arch...) and semantic discovery
-  const allWorkflows = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
   for (const wf of allWorkflows) {
     const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
     const agentSkillDir = path.join(skillsDir, wf.slug);
@@ -301,11 +303,67 @@ ${localizedPrompt}
     );
   }
 
-  // 2. Installed Pluggable Tech Skills (.agents/skills/<tech>-skill/SKILL.md)
+  // 2. Native Antigravity Rules (.agents/rules/<slug>.md) with trigger: manual
+  // Enables @auto, @onboard, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync in Antigravity's @ Mention Picker!
+  for (const wf of allWorkflows) {
+    const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
+    const ruleContent = `---
+trigger: manual
+description: "${wf.name} — ${wf.roleDescription}"
+---
+
+${localizedPrompt}
+`;
+    await fs.writeFile(
+      path.join(rulesDir, `${wf.slug}.md`),
+      ruleContent,
+      'utf-8'
+    );
+  }
+
+  // 3. Native Antigravity Workflows (.agents/workflows/<slug>.md)
+  // Enables /auto, /onboard, /ba, /arch, /dev, /qa, /doc, /hotfix, /sync in Antigravity IDE Slash Command menu!
+  for (const wf of allWorkflows) {
+    const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
+    const workflowContent = `---
+description: "${wf.name} — ${wf.roleDescription}"
+---
+
+${localizedPrompt}
+`;
+    await fs.writeFile(
+      path.join(workflowsDir, `${wf.slug}.md`),
+      workflowContent,
+      'utf-8'
+    );
+  }
+
+  // 4. Tech Skill Glob Rules (.agents/rules/tech-<id>.md) for automatic file-pattern activation in Antigravity
+  for (const skillId of installedSkills) {
+    const skill = TECH_SKILLS_REGISTRY[skillId];
+    if (!skill) continue;
+    const globsStr = skill.globs.join(', ');
+    const localizedSkill = localizePromptPaths(skill.content, platform);
+    const techRuleContent = `---
+trigger: glob
+globs: ${globsStr}
+description: "Tech Skill (${skill.name}) — ${skill.description}"
+---
+
+${localizedSkill}
+`;
+    await fs.writeFile(
+      path.join(rulesDir, `tech-${skill.id}.md`),
+      techRuleContent,
+      'utf-8'
+    );
+  }
+
+  // 5. Installed Pluggable Tech Skills (.agents/skills/<tech>-skill/SKILL.md)
   await writePlatformSkills(cwd, platform, installedSkills);
 
-  // 3. Workspace Rule (.agents/rules/00-workspace-core.md) & Root AGENTS.md
-  const agentsMd = `# AGENTS.md - Multi-Agent System & Context Engineering
+  // 6. Always-On Workspace Rule (.agents/rules/00-workspace-core.md) & Root AGENTS.md
+  const agentsMdBody = `# AGENTS.md - Multi-Agent System & Context Engineering
 
 This project uses a **5-Agent + Master Orchestrator** workflow backed by a 3-tier memory architecture in \`${wsRel}/\`.
 
@@ -321,12 +379,20 @@ ${getCommandRouterTable(platform)}
 ## 3. Installed Tech Skills
 ${installedSkills.length > 0 ? installedSkills.map((s) => `- \`${skillsRel}/${s}-skill/SKILL.md\``).join('\n') : '- *(No custom Tech Skill installed)*'}
 `;
+
+  const alwaysOnRule = `---
+trigger: always_on
+description: "Core Multi-Agent Workspace Architecture & Command Router (@auto, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)"
+---
+
+${agentsMdBody}`;
+
   await fs.writeFile(
     path.join(rulesDir, '00-workspace-core.md'),
-    agentsMd,
+    alwaysOnRule,
     'utf-8'
   );
-  await fs.writeFile(path.join(cwd, 'AGENTS.md'), agentsMd, 'utf-8');
+  await fs.writeFile(path.join(cwd, 'AGENTS.md'), agentsMdBody, 'utf-8');
 }
 
 export async function applyPlatformAdapters(
