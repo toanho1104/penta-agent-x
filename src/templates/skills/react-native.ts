@@ -5,30 +5,38 @@ export const reactNativeSkill: TechSkillDefinition = {
   name: 'React Native & Expo (Mobile Optimization)',
   category: 'Mobile',
   description:
-    'Mobile UI architecture, 60/120fps list virtualization, SafeArea & Keyboard handling, and memory leak prevention on iOS/Android',
+    'Senior React Native & Expo architecture, 60/120fps UI-thread animations, FlashList/FlatList virtualization, gesture/keyboard handling, and native memory safety',
   globs: ['**/*.tsx', '**/*.ts'],
-  content: `# TECH SKILL: React Native & Expo (High-Performance Mobile Development)
+  content: `# TECH SKILL: React Native & Expo (Senior Mobile Engineering & 60/120 FPS Optimization)
 
-## 1. Cross-Platform Layout & UX Standards (iOS & Android)
-- **Safe Area & Keyboard Handling:**
-  - Wrap screens using \`SafeAreaView\` (from \`react-native-safe-area-context\`) or the project's shared \`ScreenWrapper\`.
-  - Any screen containing \`TextInput\` fields must handle keyboard overlap via \`KeyboardAvoidingView\` (using \`behavior="padding"\` on iOS) and support dismissing the keyboard on outside tap.
-- **Design Tokens:** Never hardcode hex colors (\`#ffffff\`) or arbitrary pixel spacings when a centralized \`theme\` (colors, spacing, typography) exists.
-- **Styling:** Use \`StyleSheet.create\` (or NativeWind if configured in \`PROJECT_MEMORY.md\`). Avoid creating new inline style objects \`style={{ ... }}\` inside list items or frequent render loops.
+## 1. Cross-Platform Layout, SafeArea & Keyboard Ergonomics
+- **Safe Area & Screen Wrappers:** Wrap every screen in \`SafeAreaView\` (from \`react-native-safe-area-context\`, using explicit \`edges\`) or the project's shared \`ScreenWrapper\`.
+- **Keyboard Handling:** Every form screen with \`TextInput\` MUST handle keyboard overlap using \`KeyboardAvoidingView\` (\`behavior="padding"\` on iOS) or \`react-native-keyboard-controller\`, configure \`returnKeyType\` / \`onSubmitEditing\` focus chains, and dismiss the keyboard on outside tap (\`keyboardShouldPersistTaps="handled"\`).
+- **Design System & Styling:** Use centralized theme tokens (colors, spacing, typography, radii) and \`StyleSheet.create\` (or NativeWind if specified in \`PROJECT_MEMORY.md\`). Never allocate new inline style objects \`style={{ ... }}\` inside list items or animation loops.
+- **Touch Target Ergonomics:** Ensure interactive icon buttons and compact controls have a minimum touch area of \`44x44pt\` (use \`hitSlop\` when visual bounds are smaller).
 
-## 2. List Virtualization & 60/120 FPS Performance
-- **NEVER use \`ScrollView\` with \`.map()\`** for dynamic lists that may exceed 15 items. Always use \`FlatList\` or \`FlashList\`.
-- When using \`FlatList\`:
-  - Provide a deterministic, unique \`keyExtractor\` (avoid raw array \`index\` if list items can be reordered, added, or deleted).
-  - Extract \`renderItem\` into a memoized callback (\`useCallback\`) and wrap list item components with \`React.memo\`.
+## 2. List Virtualization & High-Frame-Rate Rendering (60/120 FPS)
+- **NEVER use \`ScrollView\` with \`.map()\`** for dynamic lists exceeding 15 items. Always use \`FlashList\` (preferred, with \`estimatedItemSize\`) or \`FlatList\`.
+- **Virtualized List Discipline:**
+  - Always provide a stable, unique \`keyExtractor\` (never use array \`index\` if items can be added, removed, filtered, or reordered).
+  - Extract \`renderItem\` into a \`useCallback\` and wrap list item components in \`React.memo\` with minimal, primitive props.
+  - Keep list item component trees shallow and avoid heavy synchronous computations during scroll.
+- **UI-Thread Animations:** Never animate layout properties (\`width\`, \`height\`, \`top\`, \`margin\`) on the JS thread via legacy state updates. Use \`react-native-reanimated\` (\`useSharedValue\`, \`useAnimatedStyle\`, worklets) animating \`transform\` and \`opacity\` on the UI thread.
 
-## 3. Lifecycle, Async Safety & Network Resilience
-- Always clean up timers (\`setTimeout\`, \`setInterval\`), subscriptions, and \`AppState\` / keyboard listeners in the \`useEffect\` cleanup return function.
-- Prevent duplicate submissions: Every critical action button (Login, Checkout, Submit) must immediately enter a \`disabled / loading\` state while an async request is in flight.
+## 3. Image Caching, Storage Security & Navigation Safety
+- **Image Memory Management:** Prefer \`expo-image\` (or \`FastImage\`) with explicit \`contentFit\` and caching policies instead of uncached base \`<Image>\` inside long lists.
+- **Secure vs. Fast Local Storage:**
+  - NEVER store sensitive tokens, JWTs, or credentials in plain \`AsyncStorage\`. Use \`expo-secure-store\` or native Keychain/Keystore.
+  - Use \`MMKV\` (or project standard) for high-frequency synchronous key-value reads.
+- **Navigation Type Safety:** Strictly type all route params. Never pass non-serializable objects (functions, class instances, large data blobs) through navigation params — pass IDs and read from the store/cache on the target screen.
 
-## 4. Strictly Forbidden Anti-Patterns
-- ❌ NEVER render raw text strings outside of a \`<Text>\` component (causes an immediate runtime crash on React Native).
-- ❌ NEVER nest a vertical \`FlatList\` inside a vertical \`ScrollView\`.
-- ❌ NEVER reference web-only globals (\`window\`, \`document\`, \`localStorage\`) in React Native code.
+## 4. Lifecycle, Concurrency & Network Resilience
+- Clean up all timers (\`setTimeout\`, \`setInterval\`), event listeners, \`AppState\` listeners, and Android hardware back handlers inside \`useEffect\` / \`useFocusEffect\` cleanup callbacks.
+- Prevent duplicate taps/mutations: Critical action buttons (Login, Payment, Submit) must immediately lock (\`disabled={isSubmitting}\`) while an async request is in flight.
+
+## 5. Strictly Forbidden Anti-Patterns
+- ❌ NEVER render raw strings or numbers outside a \`<Text>\` component (including accidental \`{count && <Component />}\` when \`count === 0\`, which crashes React Native! Always use \`{count > 0 ? <Component /> : null}\`).
+- ❌ NEVER nest a \`FlatList\` / \`FlashList\` inside a \`ScrollView\` of the same scroll orientation.
+- ❌ NEVER use web-only globals (\`window\`, \`document\`, \`localStorage\`, HTML tags like \`<div>\`/\`<span>\`) in React Native code.
 `,
 };
