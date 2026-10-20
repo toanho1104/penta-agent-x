@@ -9,6 +9,44 @@ import {
   localizePromptPaths,
 } from './workspace-paths';
 
+function getCommandRouterTable(platform: AIPlatform): string {
+  const getTargetFile = (slug: string) => {
+    switch (platform) {
+      case 'cursor':
+        return `.cursor/commands/${slug}.md`;
+      case 'claude':
+        return `.claude/commands/${slug}.md`;
+      case 'antigravity':
+      case 'codex':
+      default:
+        return `.agents/skills/${slug}/SKILL.md`;
+    }
+  };
+
+  const rows = [
+    { trigger: '`/auto`, `@auto`, `$auto`', name: '**Master Orchestrator (A -> Z)**', slug: 'auto' },
+    { trigger: '`/ba`, `@ba`, `$ba`', name: '**BA / Product Agent**', slug: 'ba' },
+    { trigger: '`/arch`, `@arch`, `$arch`', name: '**Architect / Tech Lead Agent**', slug: 'arch' },
+    { trigger: '`/dev`, `@dev`, `$dev`', name: '**Senior Dev Agent**', slug: 'dev' },
+    { trigger: '`/qa`, `@qa`, `$qa`', name: '**QA / Code Reviewer Agent**', slug: 'qa' },
+    { trigger: '`/doc`, `@doc`, `$doc`', name: '**Doc / Memory Keeper Agent**', slug: 'doc' },
+    { trigger: '`/hotfix`, `@hotfix`, `$hotfix`', name: '**Fast-Track Hotfix Mode**', slug: 'hotfix' },
+    { trigger: '`/sync`, `@sync`, `$sync`', name: '**Git Commit Checkpoint Sync**', slug: 'sync' },
+    { trigger: '`/onboard`, `@onboard`, `$onboard`', name: '**Existing Project Onboarding**', slug: 'onboard' },
+  ];
+
+  const tableBody = rows
+    .map((r) => `| ${r.trigger} | ${r.name} | \`${getTargetFile(r.slug)}\` |`)
+    .join('\n');
+
+  return `## Command & Trigger Router (Supports BOTH \`/command\`, \`$command\`, and \`@command\`)
+Whenever the user's message starts with or contains any of the triggers below (whether invoked via Slash Command \`/command\`, Skill \`$command\`, or typed directly as plain text like \`@onboard\` or \`@auto\`), you **MUST immediately read the corresponding instruction file** and execute that exact workflow:
+
+| User Trigger | Agent / Workflow Name | Instruction File to Read & Execute |
+| :--- | :--- | :--- |
+${tableBody}`;
+}
+
 async function writePlatformSkills(
   cwd: string,
   platform: AIPlatform,
@@ -45,10 +83,14 @@ async function generateCursorAdapter(
   const wsRel = getWorkspaceRelDir(platform);
   const rulesDir = path.join(cwd, '.cursor', 'rules');
   const commandsDir = path.join(cwd, '.cursor', 'commands');
+  const skillsDir = path.join(cwd, '.cursor', 'skills');
   await fs.ensureDir(rulesDir);
   await fs.ensureDir(commandsDir);
+  await fs.ensureDir(skillsDir);
 
-  // 1. Always-applied core workspace rule
+  const allAgents: AgentTemplate[] = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
+
+  // 1. Always-applied core workspace rule with explicit Command Router table
   const coreMdc = `---
 description: Core Multi-Agent Workspace Architecture & Commands (@auto, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)
 alwaysApply: true
@@ -63,21 +105,11 @@ This project uses **Multi-Agent Context Isolation** powered by \`${wsRel}/\`.
 - Detailed feature specifications are archived in \`${wsRel}/features/<feature-name>.md\`.
 - Temporary scratchpad files for the active feature in progress live in \`${wsRel}/active/\`.
 
-## Available Agent Mentions (Type \`@<command>\` or \`/<command>\` in Cursor Chat)
-- \`@auto\` / \`/auto\`: **End-to-End Auto-Pilot (A -> Z)** running BA -> Architect -> Dev -> QA -> Doc automatically.
-- \`@ba\` / \`/ba\`: **BA / Product Agent** — Analyzes requirements & UI mockups -> outputs \`active/spec.md\` & \`active/ui-spec.md\`.
-- \`@arch\` / \`/arch\`: **Architect / Tech Lead Agent** — Designs technical architecture & atomic tasks -> outputs \`active/plan.md\`.
-- \`@dev\` / \`/dev\`: **Dev Agent** — Executes atomic tasks from \`active/plan.md\` using installed Tech Skills.
-- \`@qa\` / \`/qa\`: **QA / Reviewer Agent** — Audits code changes against Spec & Plan and writes tests -> outputs \`active/review-report.md\`.
-- \`@doc\` / \`/doc\`: **Doc / Memory Keeper Agent** — Compacts completed context into \`features/\`, updates \`PROJECT_MEMORY.md\`, \`CHANGELOG_DOC.md\`, updates \`lastSyncedCommit\`, and cleans \`active/\`.
-- \`@hotfix\` / \`/hotfix\`: **Fast-Track Hotfix Mode** — Rapidly fixes a small bug at the selected code lines without full 5-step ceremony.
-- \`@sync\` / \`/sync\`: **Git Commit Checkpoint Sync** — Synchronizes manual Git commits from \`lastSyncedCommit..HEAD\`.
-- \`@onboard\` / \`/onboard\`: **Project Onboarding** — Reads \`${wsRel}/scan-report.md\` to initialize \`PROJECT_MEMORY.md\` for existing codebases.
+${getCommandRouterTable(platform)}
 `;
   await fs.writeFile(path.join(rulesDir, '00-workspace-core.mdc'), coreMdc, 'utf-8');
 
   // 2. Individual @agent rules (.cursor/rules/*.mdc) AND /agent slash commands (.cursor/commands/*.md)
-  const allAgents: AgentTemplate[] = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
   for (const agent of allAgents) {
     const localizedPrompt = localizePromptPaths(agent.systemPrompt, platform);
     const mdcContent = `---
@@ -95,7 +127,26 @@ ${localizedPrompt}
     );
   }
 
-  // 3. Tech Skill rules with auto-matching globs for Cursor
+  // 3. Modern Cursor Agent Skills (.cursor/skills/<slug>/SKILL.md)
+  for (const agent of allAgents) {
+    const localizedPrompt = localizePromptPaths(agent.systemPrompt, platform);
+    const agentSkillDir = path.join(skillsDir, agent.slug);
+    await fs.ensureDir(agentSkillDir);
+    const skillContent = `---
+name: ${agent.slug}
+description: "${agent.name} - ${agent.roleDescription}"
+---
+
+${localizedPrompt}
+`;
+    await fs.writeFile(
+      path.join(agentSkillDir, 'SKILL.md'),
+      skillContent,
+      'utf-8'
+    );
+  }
+
+  // 4. Tech Skill rules with auto-matching globs for Cursor
   for (const skillId of installedSkills) {
     const skill = TECH_SKILLS_REGISTRY[skillId];
     if (!skill) continue;
@@ -128,8 +179,12 @@ async function generateClaudeAdapter(
   const skillsRel = getSkillsRelDir(platform);
   const claudeAgentsDir = path.join(cwd, '.claude', 'agents');
   const claudeCommandsDir = path.join(cwd, '.claude', 'commands');
+  const claudeSkillsDir = path.join(cwd, '.claude', 'skills');
   await fs.ensureDir(claudeAgentsDir);
   await fs.ensureDir(claudeCommandsDir);
+  await fs.ensureDir(claudeSkillsDir);
+
+  const allWorkflows = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
 
   // 1. Native Subagents in .claude/agents/ (Isolated context windows in Claude Code)
   const roleAgents = CORE_AGENTS.filter((a) => a.slug !== 'auto');
@@ -137,7 +192,7 @@ async function generateClaudeAdapter(
     const localizedPrompt = localizePromptPaths(agent.systemPrompt, platform);
     const subagentFile = `---
 name: ${agent.slug}-agent
-description: ${agent.roleDescription}
+description: "${agent.roleDescription}"
 ---
 
 ${localizedPrompt}
@@ -149,11 +204,36 @@ ${localizedPrompt}
     );
   }
 
-  // 2. Slash commands in .claude/commands/ (/auto, /ba, /arch, /dev, /qa, /doc, /hotfix, /sync, /onboard)
-  const allWorkflows = [...CORE_AGENTS, ...UTILITY_WORKFLOWS];
+  // 2. Modern Claude Skills in .claude/skills/<slug>/SKILL.md (First-class /<slug> slash commands in modern Claude Code)
   for (const wf of allWorkflows) {
     const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
-    const cmdContent = `${localizedPrompt}
+    const sDir = path.join(claudeSkillsDir, wf.slug);
+    await fs.ensureDir(sDir);
+    const skillContent = `---
+name: ${wf.slug}
+description: "${wf.name} - ${wf.roleDescription}"
+argument-hint: "[request or task description]"
+---
+
+${localizedPrompt}
+
+---
+## Current User Request:
+$ARGUMENTS
+`;
+    await fs.writeFile(path.join(sDir, 'SKILL.md'), skillContent, 'utf-8');
+  }
+
+  // 3. Slash commands in .claude/commands/ (/auto, /ba, /arch, /dev, /qa, /doc, /hotfix, /sync, /onboard)
+  for (const wf of allWorkflows) {
+    const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
+    const cmdContent = `---
+name: ${wf.slug}
+description: "${wf.name} - ${wf.roleDescription}"
+argument-hint: "[request or task description]"
+---
+
+${localizedPrompt}
 
 ---
 ## Current User Request:
@@ -166,7 +246,7 @@ $ARGUMENTS
     );
   }
 
-  // 3. Root CLAUDE.md
+  // 4. Root CLAUDE.md
   const claudeMd = `# CLAUDE.md - Multi-Agent System & Context Engineering Guide
 
 This project is powered by a **5-Agent + Master Orchestrator** architecture with 3-tier memory stored inside \`${wsRel}/\`.
@@ -178,16 +258,7 @@ This project is powered by a **5-Agent + Master Orchestrator** architecture with
 - \`${wsRel}/CHANGELOG_DOC.md\`: Living system documentation & release log formatted for Word/PDF export.
 - \`${wsRel}/sync-state.json\`: Tracks \`lastSyncedCommit\` to synchronize manual Git commits.
 
-## 2. Claude Code Slash Commands
-- \`/auto <feature request>\`: **Full Auto-Pilot (A -> Z)** orchestrating isolated subagents sequentially (\`ba-agent\` -> \`architect-agent\` -> \`dev-agent\` -> \`qa-agent\` -> \`doc-agent\`).
-- \`/ba <request>\`: Run Phase 1 (Business & UI Specification -> \`active/spec.md\`, \`active/ui-spec.md\`).
-- \`/arch\`: Run Phase 2 (System Architecture & Atomic Task Plan -> \`active/plan.md\`).
-- \`/dev [task-number]\`: Run Phase 3 (Execute task from \`active/plan.md\` with Tech Skills in \`${skillsRel}/\`).
-- \`/qa\`: Run Phase 4 (Audit code & write tests -> \`active/review-report.md\`).
-- \`/doc\`: Run Phase 5 (Archive to \`features/\`, update \`PROJECT_MEMORY.md\`, record Git commit & clean \`active/\`).
-- \`/hotfix <bug description>\`: Fast-Track mode to fix a small bug directly.
-- \`/sync\`: Synchronize manual Git commits from \`lastSyncedCommit..HEAD\`.
-- \`/onboard\`: Populate \`PROJECT_MEMORY.md\` from \`${wsRel}/scan-report.md\` for existing codebases.
+${getCommandRouterTable(platform)}
 
 ## 3. Installed Tech Skills for Dev & QA Agents
 ${installedSkills.length > 0 ? installedSkills.map((s) => `- \`${skillsRel}/${s}/SKILL.md\``).join('\n') : '- *(No custom Tech Skill installed)*'}
@@ -218,7 +289,7 @@ async function generateAntigravityAndCodexAdapter(
     await fs.ensureDir(agentSkillDir);
     const skillContent = `---
 name: ${wf.slug}
-description: ${wf.name} — ${wf.roleDescription}
+description: "${wf.name} — ${wf.roleDescription}"
 ---
 
 ${localizedPrompt}
@@ -245,16 +316,7 @@ This project uses a **5-Agent + Master Orchestrator** workflow backed by a 3-tie
 - \`${wsRel}/CHANGELOG_DOC.md\`: Living documentation & changelog for Word/PDF export.
 - \`${wsRel}/sync-state.json\`: Tracks \`lastSyncedCommit\` for Git synchronization.
 
-## 2. Agent Skills & Slash Commands (\`.agents/skills/\`)
-- \`/auto\`: Full Auto-Pilot (A -> Z) running BA -> Architect -> Dev -> QA -> Doc.
-- \`/ba\`: Business & UI Specification (\`active/spec.md\`, \`active/ui-spec.md\`).
-- \`/arch\`: Technical Architecture & Atomic Task Plan (\`active/plan.md\`).
-- \`/dev\`: Execute atomic tasks from \`active/plan.md\` with Tech Skills in \`${skillsRel}/\`.
-- \`/qa\`: Quality Assurance Audit & Unit Tests (\`active/review-report.md\`).
-- \`/doc\`: Archive feature to \`features/\`, update \`PROJECT_MEMORY.md\`, \`CHANGELOG_DOC.md\`, \`lastSyncedCommit\`, and clean \`active/\`.
-- \`/hotfix\`: Fast-Track mode for small bugfixes.
-- \`/sync\`: Synchronize manual Git commits from \`lastSyncedCommit..HEAD\`.
-- \`/onboard\`: Initialize \`PROJECT_MEMORY.md\` from \`${wsRel}/scan-report.md\`.
+${getCommandRouterTable(platform)}
 
 ## 3. Installed Tech Skills
 ${installedSkills.length > 0 ? installedSkills.map((s) => `- \`${skillsRel}/${s}-skill/SKILL.md\``).join('\n') : '- *(No custom Tech Skill installed)*'}
