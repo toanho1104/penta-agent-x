@@ -46,7 +46,7 @@ When a codebase grows, relying on a single AI Agent in a long chat session inevi
 | **0** | **Master Orchestrator (`@auto` / `/auto`)** | **End-to-End Conductor:** Automatically drives Phase 1 (BA) → Phase 2 (Architect) → Phase 3 (Dev loop) → Phase 4 (QA & auto-fix) → Phase 5 (Doc & cleanup). | Full feature delivery + updated `PROJECT_MEMORY.md` |
 | **1** | **BA / Product Agent (`@ba` / `/ba`)** | Analyzes requirements & UI screenshots, asks clarifying questions if ambiguous, identifies edge cases, and writes specs. | `active/spec.md`, `active/ui-spec.md` |
 | **2** | **Architect Agent (`@arch` / `/arch`)** | Reads BA specs & `PROJECT_MEMORY.md`, identifies reusable components, designs APIs/data models, and plans sequential atomic tasks. | `active/plan.md` |
-| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md` using installed **Pluggable Tech Skills** (`nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`). | Production-ready Source Code |
+| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md` using installed **Pluggable Tech Skills** (`nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter`). | Production-ready Source Code |
 | **4** | **QA / Reviewer Agent (`@qa` / `/qa`)** | Audits code changes against `spec.md` & `plan.md`, checks for regressions/anti-patterns, and writes Unit/Integration Tests. | Test Files + `active/review-report.md` |
 | **5** | **Doc / Memory Keeper (`@doc` / `/doc`)** | Compacts completed feature context into `features/`, updates `PROJECT_MEMORY.md` & `CHANGELOG_DOC.md`, records `lastSyncedCommit`, and cleans `active/`. | Updated `features/*.md`, `PROJECT_MEMORY.md`, `sync-state.json` |
 
@@ -73,7 +73,7 @@ penta init
    - **Existing Project (Brownfield):** Runs a zero-token scanner on your directory tree, `package.json`/`pubspec.yaml`, and shared UI/utility folders to generate `workspace/scan-report.md`. Then run `@onboard` (or `/onboard`) in your chat so the **Architect Agent** populates `PROJECT_MEMORY.md`.
    - **New Project (Greenfield):** Choose from 5 categories (`FE`, `BE`, `Mobile`, `Fullstack`, `None`) and stacks (`Next.js`, `React.js`, `ElysiaJS`, `NestJS`, `React Native`, `Flutter`) to scaffold a standard directory structure inside `PROJECT_MEMORY.md`.
 3. **Step 3 — Select Pluggable Tech Skills for the Dev Agent:**
-   - Multi-select (`Space` to toggle, `Enter` to confirm): `nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter`.
+   - Multi-select (`Space` to toggle, `Enter` to confirm): `nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter`.
 4. **Step 4 — Track in Git or Ignore (`Yes` / `No`):**
    - Choose **`Yes`** to commit the AI workspace to Git and share `PROJECT_MEMORY.md` with your team, or **`No`** to automatically append the directory (e.g., `.cursor/`) to `.gitignore` so it stays 100% local on your machine.
 
@@ -126,12 +126,38 @@ Use slash commands (`/auto`, `/ba`, `/arch`, `/dev`, `/qa`, `/doc`, `/hotfix`, `
 | Command | Alias (Global Install) | Description |
 | :--- | :--- | :--- |
 | `npx penta-agent-x init` | `penta init` | Launches the 3-step interactive wizard to initialize Agents, `workspace/`, and Tech Skills inside `.cursor/`, `.claude/`, or `.agents/`. |
-| `npx penta-agent-x add-skill [skills...]` | `penta add-skill` | Interactively add or remove Tech Skills (`nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs`). |
+| `npx penta-agent-x add-skill [skills...]` | `penta add-skill` | Interactively add or remove Tech Skills (`nextjs`, `react-native`, `flutter`, `elysiajs`, `nestjs`, `reactjs`, `angularjs`, `bootstrap`). |
 | `npx penta-agent-x sync` | `penta sync` | Checks uncommitted changes and rebase edge cases, then extracts `git diff` from `lastSyncedCommit..HEAD` into `workspace/sync-diff.md` for `@sync` / `/sync`. |
 | `npx penta-agent-x sync --mark-done` | `penta sync -m` | Updates `lastSyncedCommit` in `workspace/sync-state.json` to the current `HEAD` commit. |
 | `npx penta-agent-x scan` | `penta scan` | Scans the project directory tree and dependencies (0 tokens) into `workspace/scan-report.md`. |
 | `npx penta-agent-x hotfix "description"` | `penta hotfix "..."` | Creates a fast-track hotfix ticket in `workspace/active/hotfix.md` and prints `@hotfix` / `/hotfix` usage. |
 | `npx penta-agent-x update` | `penta update` | Refreshes all Agent prompts, platform adapters, and installed Tech Skills to the latest version. |
+
+---
+
+## 🧩 6. Available Pluggable Tech Skills (`penta add-skill`)
+
+You can install or manage Tech Skills interactively during `init`, via the interactive selector, or by passing skill IDs directly in your terminal:
+
+```bash
+# Open interactive multi-select menu (Space to toggle, Enter to confirm)
+npx penta-agent-x add-skill
+
+# Or install specific Tech Skills directly by ID
+npx penta-agent-x add-skill nextjs bootstrap
+npx penta-agent-x add-skill angularjs nestjs
+```
+
+| Skill ID (`add-skill <id>`) | Category | Technology / Stack | Senior Engineering Focus Included |
+| :--- | :---: | :--- | :--- |
+| `nextjs` | **FE** | **Next.js (App Router & Modern React)** | RSC vs. Client leaf islands, Next.js 15+ async `params`/`searchParams`, parallel streaming & Suspense, URL state, Zod validation, CWV optimization. |
+| `reactjs` | **FE** | **React.js (SPA / Vite)** | Feature-sliced architecture, TanStack Query vs. Zustand separation, `AbortController` race-condition protection, zero cascading `useEffect`, code splitting. |
+| `angularjs` | **FE** | **Angular & AngularJS (v16–19+ & 1.x)** | **Modern Angular:** Standalone components, Signals, `OnPush`, RxJS `takeUntilDestroyed()`, Reactive Forms.<br>**AngularJS 1.x:** `.component()` + `controllerAs`, `$onDestroy` cleanup, one-time bindings `::`, `track by`. |
+| `bootstrap` | **FE** | **Bootstrap 5 & Responsive UI** | Strict `.container` → `.row` → `.col-*` grid rules, `.g-*` gutters, Utility API over custom CSS bloat, SCSS & `--bs-*` variable theming, dark mode (`data-bs-theme`), A11y & modal/tooltip lifecycle cleanup. |
+| `elysiajs` | **BE** | **ElysiaJS & Bun** | End-to-end TypeBox validation & response schemas, type-safe `.derive()`/`.resolve()` plugins, RFC 7807 error envelopes, DB transactions, N+1 & cursor pagination, graceful shutdown. |
+| `nestjs` | **BE** | **NestJS (Enterprise Node.js)** | Strict Controller → Service → Repository layers, DTO `class-validator` (`whitelist: true`), custom Guards/Interceptors/ExceptionFilter, DB transactions & idempotency, Swagger & E2E testing. |
+| `react-native` | **Mobile** | **React Native & Expo** | `FlashList` / `FlatList` 60fps virtualization, Reanimated UI-thread worklets, keyboard & SafeArea handling, `expo-secure-store` token storage, offline resilience & optimistic updates. |
+| `flutter` | **Mobile** | **Flutter & Dart** | Feature-first Clean Architecture, `const` widget rebuild isolation, `ListView.builder` / `SliverList`, `mounted` checks after `await`, `Dio` CancelToken & interceptors, responsive `MediaQuery` & A11y. |
 
 ---
 

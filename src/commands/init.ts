@@ -120,12 +120,20 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
     if (scanRes.detectedStacks.includes('NestJS')) suggestedSkills.add('nestjs');
     if (scanRes.detectedStacks.includes('Flutter / Dart'))
       suggestedSkills.add('flutter');
+    if (scanRes.detectedStacks.includes('Angular / AngularJS'))
+      suggestedSkills.add('angularjs');
+    if (scanRes.detectedStacks.includes('Bootstrap'))
+      suggestedSkills.add('bootstrap');
   } else {
     // Step 2.2: New Project -> 5 Options (FE, BE, Mobile, Fullstack, None)
     category = (await p.select({
       message: 'Step 2.2: Select project category:',
       options: [
-        { value: 'fe', label: '1. Frontend (FE)', hint: 'Next.js, React.js' },
+        {
+          value: 'fe',
+          label: '1. Frontend (FE)',
+          hint: 'Next.js, React.js, Angular',
+        },
         {
           value: 'be',
           label: '2. Backend (BE)',
@@ -160,12 +168,14 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
         options: [
           { value: 'nextjs', label: 'Next.js (App Router)' },
           { value: 'reactjs', label: 'React.js (SPA / Vite)' },
+          { value: 'angularjs', label: 'Angular / AngularJS' },
           { value: 'none', label: 'None (Blank)' },
         ],
       })) as string;
       checkCancel(feStack);
       if (feStack === 'nextjs') suggestedSkills.add('nextjs');
       if (feStack === 'reactjs') suggestedSkills.add('reactjs');
+      if (feStack === 'angularjs') suggestedSkills.add('angularjs');
     }
 
     // Step 2.2.2: Select BE

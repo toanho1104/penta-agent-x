@@ -207,6 +207,15 @@ async function detectStackInDir(dirPath: string): Promise<{
       if (allDeps['react-native'] || allDeps['expo']) stacks.push('React Native');
       if (allDeps['react'] && !allDeps['next'] && !allDeps['react-native'])
         stacks.push('React.js');
+      if (allDeps['@angular/core'] || allDeps['angular'])
+        stacks.push('Angular / AngularJS');
+      if (
+        allDeps['bootstrap'] ||
+        allDeps['react-bootstrap'] ||
+        allDeps['@ng-bootstrap/ng-bootstrap'] ||
+        allDeps['ngx-bootstrap']
+      )
+        stacks.push('Bootstrap');
       if (allDeps['elysia']) stacks.push('ElysiaJS');
       if (allDeps['@nestjs/core']) stacks.push('NestJS');
       if (allDeps['express']) stacks.push('Express.js');

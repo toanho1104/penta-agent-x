@@ -27,7 +27,7 @@
 | **0** | **Master Orchestrator (`@auto` / `/auto`)** | **End-to-End Conductor:** Receives user requirements and automatically orchestrates Phase 1 (BA) -> Phase 2 (Architect) -> Phase 3 (Dev task loop) -> Phase 4 (QA review & auto-fix) -> Phase 5 (Doc & workspace cleanup). | • `workflow-orchestrator`<br>• `subagent-dispatcher`<br>• `stage-gate-validator` | Coordinates the entire pipeline from requirement intake to `PROJECT_MEMORY.md` update. |
 | **1** | **BA / Product Agent (`@ba` / `/ba`)** | Analyzes business requirements & UI images, asks clarifying questions if ambiguous, identifies edge cases, and writes functional & UI specifications. | • `requirement-clarifier`<br>• `prd-spec-writer`<br>• `ui-vision-to-md`<br>• `bug-triage-spec` | **In:** User Prompt + UI Image + `PROJECT_MEMORY.md`<br>**Out:** `active/spec.md`, `active/ui-spec.md` |
 | **2** | **Architect / Tech Lead Agent (`@arch` / `/arch`)** | Initializes project architecture; reads BA specs to design technical solutions, identifies reusable components, and breaks work into sequential atomic tasks. | • `project-onboarding`<br>• `codebase-impact-analyzer`<br>• `system-api-designer`<br>• `atomic-task-planner` | **In:** `active/spec.md`, `ui-spec.md` + `PROJECT_MEMORY.md` + `features/*.md`<br>**Out:** `active/plan.md` |
-| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md`, combining Core Dev Skills with installed **Pluggable Tech Skills**. | **Core:**<br>• `strict-plan-executor` (*Stop & Escalate*)<br>• `clean-code-and-solid`<br>• `safe-refactoring`<br>**Tech Skills (via NPM):**<br>• `nextjs`, `react-native`, `reactjs`, `elysiajs`, `nestjs`, `flutter` | **In:** Single Task in `active/plan.md` + `ui-spec.md` + Tech Skill<br>**Out:** Production-ready Source Code |
+| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md`, combining Core Dev Skills with installed **Pluggable Tech Skills**. | **Core:**<br>• `strict-plan-executor` (*Stop & Escalate*)<br>• `clean-code-and-solid`<br>• `safe-refactoring`<br>**Tech Skills (via NPM):**<br>• `nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter` | **In:** Single Task in `active/plan.md` + `ui-spec.md` + Tech Skill<br>**Out:** Production-ready Source Code |
 | **4** | **QA / Reviewer Agent (`@qa` / `/qa`)** | Independently audits code changes against `spec.md` & `plan.md`, checks for regressions/anti-patterns, and writes Unit/Integration Tests. | • `spec-compliance-checker`<br>• `deep-code-reviewer`<br>• `automated-test-writer` | **In:** `spec.md` + `plan.md` + `git diff` + Tech Skill<br>**Out:** Test Files + `active/review-report.md` |
 | **5** | **Doc / Memory Keeper Agent (`@doc` / `/doc`)** | Compacts completed feature context into `features/`, updates the `PROJECT_MEMORY.md` index, logs changes to `CHANGELOG_DOC.md`, updates `lastSyncedCommit`, and cleans `active/`. | • `context-compactor`<br>• `architecture-sync`<br>• `changelog-doc-exporter`<br>• `git-commit-sync` | **In:** `active/*` or `sync-diff.md`<br>**Out:** Updates `features/*.md`, `PROJECT_MEMORY.md`, `CHANGELOG_DOC.md`, `sync-state.json` & clears `active/` |
 
@@ -153,6 +153,8 @@ src/
 │   │   ├── nextjs.ts                 # Next.js (App Router) skill
 │   │   ├── react-native.ts           # React Native & Expo skill
 │   │   ├── reactjs.ts                # React.js SPA skill
+│   │   ├── angularjs.ts              # Angular (Standalone/Signals) & AngularJS 1.x skill
+│   │   ├── bootstrap.ts              # Bootstrap 5 & Responsive UI skill
 │   │   ├── elysiajs.ts               # ElysiaJS & Bun skill
 │   │   ├── nestjs.ts                 # NestJS skill
 │   │   └── flutter.ts                # Flutter & Dart skill
@@ -160,6 +162,7 @@ src/
 │       ├── index.ts                  # Barrel registry: STRUCTURE_TEMPLATES & memory/changelog generators
 │       ├── nextjs.ts                 # Next.js directory tree
 │       ├── reactjs.ts                # React.js directory tree
+│       ├── angularjs.ts              # Angular / AngularJS directory tree
 │       ├── nestjs.ts                 # NestJS directory tree
 │       ├── elysiajs.ts               # ElysiaJS directory tree
 │       ├── react-native.ts           # React Native directory tree
@@ -209,6 +212,10 @@ src/
 - [x] **English Standardization:** All documentation (`README.md`, `PROJECT_VISION.md`) and all generated Markdown templates (`src/templates/*`) have been converted to professional English.
 - [x] **Modular Template Refactoring (`src/templates/skills/` & `src/templates/project-structures/`):** Split monolithic `tech-skills.ts` and `project-structures.ts` into dedicated per-technology files with barrel `index.ts` exports to prevent bloated files and simplify future maintenance.
 - [x] **NPM Package Naming (`penta-agent-x`) & GitHub Actions Auto-Publish CI/CD (`.github/workflows/publish-npm.yml`):** Finalized package name as `penta-agent-x` (with CLI binaries `penta-agent-x`, `penta-agent`, `penta`, `ai-team`) and configured automated build, auto-patch version bump, and NPM publish on push/merge to `main` / `master`.
+- [x] **Senior Engineering Upgrade & New Tech Skills (`bootstrap`, `angularjs` - 2026-10-20):**
+  - Upgraded all 8 Tech Skills (`nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter`) to Senior Engineering standards (concurrency & race-condition safety, N+1/memory leak prevention, A11y, security & validation, and build/typecheck verification).
+  - Upgraded Core Agent prompts (`@ba`, `@arch`, `@dev`, `@qa`) with Non-Functional Requirements (NFRs), Backward-Compatible DB & API Contracts, Zero-Any & Self-Verification gates, and OWASP/Performance audit criteria.
+  - Added full cross-platform discovery compatibility across Cursor, Claude Code, Google Antigravity, and OpenAI Codex (`.cursor/skills/*/SKILL.md`, `.claude/skills/*/SKILL.md`, `.agents/skills/*/SKILL.md`, and `Command & Trigger Router Table`).
 
 ### 🔜 Upcoming Roadmap / Next Steps (To Continue at Home)
 1. **Deepen Tech Skill Templates (`src/templates/skills/*.ts`):**

@@ -3,6 +3,7 @@ import { TechSkillDefinition } from '../../types';
 export const angularjsSkill: TechSkillDefinition = {
   id: 'angularjs',
   name: 'Angular & AngularJS Architecture',
+  category: 'FE',
   description:
     'Senior Angular (Standalone, Signals, OnPush, RxJS) & AngularJS 1.x (Component architecture, Digest optimization, Memory-safe lifecycle)',
   globs: ['**/*.ts', '**/*.html', '**/*.js'],

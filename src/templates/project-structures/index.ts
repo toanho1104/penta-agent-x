@@ -1,5 +1,6 @@
 import { nextjsStructure } from './nextjs';
 import { reactjsStructure } from './reactjs';
+import { angularjsStructure } from './angularjs';
 import { nestjsStructure } from './nestjs';
 import { elysiajsStructure } from './elysiajs';
 import { reactNativeStructure } from './react-native';
@@ -9,6 +10,7 @@ import { noneStructure } from './none';
 export const STRUCTURE_TEMPLATES: Record<string, string> = {
   nextjs: nextjsStructure,
   reactjs: reactjsStructure,
+  angularjs: angularjsStructure,
   nestjs: nestjsStructure,
   elysiajs: elysiajsStructure,
   'react-native': reactNativeStructure,
@@ -132,6 +134,7 @@ export function generateInitialChangelogDoc(
 export {
   nextjsStructure,
   reactjsStructure,
+  angularjsStructure,
   nestjsStructure,
   elysiajsStructure,
   reactNativeStructure,
