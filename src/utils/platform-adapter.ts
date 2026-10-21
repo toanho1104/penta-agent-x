@@ -25,6 +25,9 @@ function getCommandRouterTable(platform: AIPlatform): string {
 
   const rows = [
     { trigger: '`/auto`, `@auto`, `$auto`', name: '**Master Orchestrator (A -> Z)**', slug: 'auto' },
+    { trigger: '`/ask`, `@ask`, `$ask`', name: '**Project Advisor & Q&A (Read-Only)**', slug: 'ask' },
+    { trigger: '`/plan`, `@plan`, `$plan`', name: '**Interactive Co-Planning (BA + Architect)**', slug: 'plan' },
+    { trigger: '`/actionPlan`, `@actionPlan`, `$actionPlan`, `/action-plan`, `@action-plan`', name: '**Action Plan Executor (`Dev -> QA -> Doc`)**', slug: 'actionPlan' },
     { trigger: '`/ba`, `@ba`, `$ba`', name: '**BA / Product Agent**', slug: 'ba' },
     { trigger: '`/arch`, `@arch`, `$arch`', name: '**Architect / Tech Lead Agent**', slug: 'arch' },
     { trigger: '`/dev`, `@dev`, `$dev`', name: '**Senior Dev Agent**', slug: 'dev' },
@@ -40,7 +43,7 @@ function getCommandRouterTable(platform: AIPlatform): string {
     .join('\n');
 
   return `## Command & Trigger Router (Supports BOTH \`/command\`, \`$command\`, and \`@command\`)
-Whenever the user's message starts with or contains any of the triggers below (whether invoked via Slash Command \`/command\`, Skill \`$command\`, or typed directly as plain text like \`@onboard\` or \`@auto\`), you **MUST immediately read the corresponding instruction file** and execute that exact workflow:
+Whenever the user's message starts with or contains any of the triggers below (whether invoked via Slash Command \`/command\`, Skill \`$command\`, or typed directly as plain text like \`@onboard\`, \`@ask\`, \`@plan\`, \`@actionPlan\`, or \`@auto\`), you **MUST immediately read the corresponding instruction file** and execute that exact workflow:
 
 | User Trigger | Agent / Workflow Name | Instruction File to Read & Execute |
 | :--- | :--- | :--- |
@@ -92,7 +95,7 @@ async function generateCursorAdapter(
 
   // 1. Always-applied core workspace rule with explicit Command Router table
   const coreMdc = `---
-description: Core Multi-Agent Workspace Architecture & Commands (@auto, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)
+description: Core Multi-Agent Workspace Architecture & Commands (@auto, @ask, @plan, @actionPlan, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)
 alwaysApply: true
 ---
 
@@ -103,7 +106,7 @@ This project uses **Multi-Agent Context Isolation** powered by \`${wsRel}/\`.
 ## Single Source of Truth
 - Always read \`${wsRel}/PROJECT_MEMORY.md\` first before planning or writing code.
 - Detailed feature specifications are archived in \`${wsRel}/features/<feature-name>.md\`.
-- Temporary scratchpad files for the active feature in progress live in \`${wsRel}/active/\`.
+- Temporary scratchpad files for the active feature in progress live in \`${wsRel}/active/\` (\`spec.md\`, \`ui-spec.md\`, \`plan.md\`, \`action-plan.md\`, \`review-report.md\`).
 
 ${getCommandRouterTable(platform)}
 `;
@@ -253,7 +256,7 @@ This project is powered by a **5-Agent + Master Orchestrator** architecture with
 
 ## 1. 3-Tier Memory Architecture (\`${wsRel}/\`)
 - \`${wsRel}/PROJECT_MEMORY.md\`: Concise (< 300 lines) global map of the project. Always read this file first!
-- \`${wsRel}/active/\`: Temporary scratchpad for the single feature currently in progress (\`spec.md\`, \`ui-spec.md\`, \`plan.md\`, \`review-report.md\`).
+- \`${wsRel}/active/\`: Temporary scratchpad for the single feature currently in progress (\`spec.md\`, \`ui-spec.md\`, \`plan.md\`, \`action-plan.md\`, \`review-report.md\`).
 - \`${wsRel}/features/\`: Permanent knowledge vault storing detailed specs per completed feature.
 - \`${wsRel}/CHANGELOG_DOC.md\`: Living system documentation & release log formatted for Word/PDF export.
 - \`${wsRel}/sync-state.json\`: Tracks \`lastSyncedCommit\` to synchronize manual Git commits.
@@ -304,7 +307,7 @@ ${localizedPrompt}
   }
 
   // 2. Native Antigravity Rules (.agents/rules/<slug>.md) with trigger: manual
-  // Enables @auto, @onboard, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync in Antigravity's @ Mention Picker!
+  // Enables @auto, @ask, @plan, @actionPlan, @onboard, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync in Antigravity's @ Mention Picker!
   for (const wf of allWorkflows) {
     const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
     const ruleContent = `---
@@ -322,7 +325,7 @@ ${localizedPrompt}
   }
 
   // 3. Native Antigravity Workflows (.agents/workflows/<slug>.md)
-  // Enables /auto, /onboard, /ba, /arch, /dev, /qa, /doc, /hotfix, /sync in Antigravity IDE Slash Command menu!
+  // Enables /auto, /ask, /plan, /actionPlan, /onboard, /ba, /arch, /dev, /qa, /doc, /hotfix, /sync in Antigravity IDE Slash Command menu!
   for (const wf of allWorkflows) {
     const localizedPrompt = localizePromptPaths(wf.systemPrompt, platform);
     const workflowContent = `---
@@ -369,7 +372,7 @@ This project uses a **5-Agent + Master Orchestrator** workflow backed by a 3-tie
 
 ## 1. Workspace Memory Structure (\`${wsRel}/\`)
 - \`${wsRel}/PROJECT_MEMORY.md\`: Global project map (< 300 lines). Always read this first.
-- \`${wsRel}/active/\`: Active feature scratchpad (\`spec.md\`, \`ui-spec.md\`, \`plan.md\`, \`review-report.md\`).
+- \`${wsRel}/active/\`: Active feature scratchpad (\`spec.md\`, \`ui-spec.md\`, \`plan.md\`, \`action-plan.md\`, \`review-report.md\`).
 - \`${wsRel}/features/\`: Long-term feature specification vault.
 - \`${wsRel}/CHANGELOG_DOC.md\`: Living documentation & changelog for Word/PDF export.
 - \`${wsRel}/sync-state.json\`: Tracks \`lastSyncedCommit\` for Git synchronization.
@@ -382,7 +385,7 @@ ${installedSkills.length > 0 ? installedSkills.map((s) => `- \`${skillsRel}/${s}
 
   const alwaysOnRule = `---
 trigger: always_on
-description: "Core Multi-Agent Workspace Architecture & Command Router (@auto, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)"
+description: "Core Multi-Agent Workspace Architecture & Command Router (@auto, @ask, @plan, @actionPlan, @ba, @arch, @dev, @qa, @doc, @hotfix, @sync, @onboard)"
 ---
 
 ${agentsMdBody}`;

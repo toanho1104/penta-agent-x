@@ -265,7 +265,7 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
 
   await fs.writeFile(
     path.join(workspaceDir, 'active', '.gitkeep'),
-    '# Temporary scratchpad for the single active feature in progress (spec.md, ui-spec.md, plan.md, review-report.md)\n',
+    '# Temporary scratchpad for the single active feature in progress (spec.md, ui-spec.md, plan.md, action-plan.md, review-report.md)\n',
     'utf-8'
   );
   await fs.writeFile(
@@ -393,6 +393,8 @@ export async function runInitCommand(cwd: string = process.cwd()): Promise<void>
       '',
       pc.bold('⚡ Daily Commands:'),
       `  • Full Auto-Pilot (A -> Z):    Type ${pc.green('@auto <feature description>')} (or ${pc.green('/auto')})`,
+      `  • Ask & Explore (Read-Only):   Type ${pc.blue('@ask <question about project>')}`,
+      `  • Discuss & Co-Plan:           Type ${pc.cyan('@plan <idea>')} -> then ${pc.cyan('@actionPlan')} to execute`,
       `  • Step-by-Step Control:        Type ${pc.cyan('@ba')} -> ${pc.cyan('@arch')} -> ${pc.cyan('@dev')} -> ${pc.cyan('@qa')} -> ${pc.cyan('@doc')}`,
       `  • Fast-Track Bugfix:           Type ${pc.yellow('@hotfix <bug description>')}`,
       `  • Sync Manual Git Commits:     Run ${pc.magenta('npx penta-agent-x sync')} or type ${pc.magenta('@sync')}`

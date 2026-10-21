@@ -39,16 +39,19 @@ When a codebase grows, relying on a single AI Agent in a long chat session inevi
 
 ---
 
-## 🤖 2. The 5 Core Agents + Master Orchestrator
+## 🤖 2. The 5 Core Agents, Master Orchestrator & Interactive Workflows
 
 | # | Agent / Trigger | Primary Responsibility | Output Artifacts |
 | :--- | :--- | :--- | :--- |
 | **0** | **Master Orchestrator (`@auto` / `/auto`)** | **End-to-End Conductor:** Automatically drives Phase 1 (BA) → Phase 2 (Architect) → Phase 3 (Dev loop) → Phase 4 (QA & auto-fix) → Phase 5 (Doc & cleanup). | Full feature delivery + updated `PROJECT_MEMORY.md` |
-| **1** | **BA / Product Agent (`@ba` / `/ba`)** | Analyzes requirements & UI screenshots, asks clarifying questions if ambiguous, identifies edge cases, and writes specs. | `active/spec.md`, `active/ui-spec.md` |
-| **2** | **Architect Agent (`@arch` / `/arch`)** | Reads BA specs & `PROJECT_MEMORY.md`, identifies reusable components, designs APIs/data models, and plans sequential atomic tasks. | `active/plan.md` |
-| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md` using installed **Pluggable Tech Skills** (`nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter`). | Production-ready Source Code |
-| **4** | **QA / Reviewer Agent (`@qa` / `/qa`)** | Audits code changes against `spec.md` & `plan.md`, checks for regressions/anti-patterns, and writes Unit/Integration Tests. | Test Files + `active/review-report.md` |
-| **5** | **Doc / Memory Keeper (`@doc` / `/doc`)** | Compacts completed feature context into `features/`, updates `PROJECT_MEMORY.md` & `CHANGELOG_DOC.md`, records `lastSyncedCommit`, and cleans `active/`. | Updated `features/*.md`, `PROJECT_MEMORY.md`, `sync-state.json` |
+| **1** | **BA / Product Agent (`@ba` / `/ba`)** | Analyzes requirements & UI screenshots, models state transitions & NFRs, identifies edge cases, and writes specs. | `active/spec.md`, `active/ui-spec.md` |
+| **2** | **Architect Agent (`@arch` / `/arch`)** | Reads BA specs & `PROJECT_MEMORY.md`, guards backward compatibility & blast radius, identifies reusable components, and plans sequential atomic tasks. | `active/plan.md` |
+| **3** | **Dev Agent (`@dev` / `/dev`)** | Executes **one atomic task at a time** from `plan.md` or `action-plan.md` using installed **Pluggable Tech Skills** (`nextjs`, `react-native`, `reactjs`, `angularjs`, `bootstrap`, `elysiajs`, `nestjs`, `flutter`). | Production-ready Source Code |
+| **4** | **QA / Reviewer Agent (`@qa` / `/qa`)** | Audits code changes against `spec.md` & `plan.md` (or `action-plan.md`), checks external call-sites for regressions, and writes Unit/Integration Tests. | Test Files + `active/review-report.md` |
+| **5** | **Doc / Memory Keeper (`@doc` / `/doc`)** | Compacts completed feature context into `features/`, deduplicates & updates `PROJECT_MEMORY.md` & `CHANGELOG_DOC.md`, records `lastSyncedCommit`, and cleans `active/`. | Updated `features/*.md`, `PROJECT_MEMORY.md`, `sync-state.json` |
+| **6** | **Project Advisor (`@ask` / `/ask`)** | **100% Read-Only Q&A:** Answers questions about project architecture, code flows, and business rules using 2-step memory lookup without touching code. | Direct in-chat answer (Zero file side-effects) |
+| **7** | **Co-Planning (`@plan` / `/plan`)** | **BA + Architect Co-Consultation:** Discusses options/trade-offs with you, filters out off-topic/scattered input, and caches the evolving plan in `active/action-plan.md` (`DRAFT` / `READY`). | `active/action-plan.md` |
+| **8** | **Action Plan Executor (`@actionPlan` / `/actionPlan`)** | Validates `active/action-plan.md` (Missing, Draft/Ambiguous, Ready) and runs `READY` plans directly through **Dev → QA → Doc** (bypassing BA & Architect). | Source Code + Tests + `features/*.md` + clean `active/` |
 
 ---
 
@@ -86,22 +89,30 @@ penta init
 | Use Case | Prompt in Cursor Chat | What Happens |
 | :--- | :--- | :--- |
 | **1. Build a Feature Automatically (A → Z)** | `@auto Build Login with Email & Google [attach UI image]` | Runs the full pipeline automatically: **BA** (`spec.md`) → **Architect** (`plan.md`) → **Dev** (Sequential tasks) → **QA** (Audit & Tests) → **Doc** (Archives to `features/`, updates `PROJECT_MEMORY.md`, records Git commit & cleans `active/`). |
-| **2. Step-by-Step Manual Control** | • `@ba Build Login...`<br>• `@arch Create plan`<br>• `@dev Execute task 1`<br>• `@qa Audit & test`<br>• `@doc Finalize feature` | Press `Ctrl + N` (`Cmd + N`) between steps to start a fresh chat tab with 100% isolated context. |
-| **3. Fast-Track Small Bugfix (`@hotfix`)** | Select code lines (`Ctrl + L`) → Type:<br>`@hotfix Disable submit button while loading` | Bypasses the 5-step ceremony: fixes the selected code directly using your Tech Skill and performs a lightweight memory check. |
-| **4. Onboard an Existing Project** | `@onboard` | Architect Agent reads `workspace/scan-report.md` and populates `PROJECT_MEMORY.md`. |
-| **5. Sync Manual Code Commits** | `@sync` *(or run `npx penta-agent-x sync` first)* | Doc Agent inspects Git history from `lastSyncedCommit..HEAD` and updates `PROJECT_MEMORY.md`, `features/*.md`, and `CHANGELOG_DOC.md`. |
+| **2. Ask About the Project (`@ask`)** | `@ask How does the current checkout payment flow work?` | 100% Read-Only: looks up `PROJECT_MEMORY.md` → `features/*.md` → source code and answers directly without modifying files. |
+| **3. Discuss & Co-Plan (`@plan` → `@actionPlan`)** | • `@plan Let's design real-time notifications...`<br>• `@actionPlan` | Collaborates with **BA + Architect** to cache the agreed plan into `active/action-plan.md`, then `@actionPlan` executes **Dev → QA → Doc** directly! |
+| **4. Step-by-Step Manual Control** | • `@ba Build Login...`<br>• `@arch Create plan`<br>• `@dev Execute task 1`<br>• `@qa Audit & test`<br>• `@doc Finalize feature` | Press `Ctrl + N` (`Cmd + N`) between steps to start a fresh chat tab with 100% isolated context. |
+| **5. Fast-Track Small Bugfix (`@hotfix`)** | Select code lines (`Ctrl + L`) → Type:<br>`@hotfix Disable submit button while loading` | Bypasses the 5-step ceremony: fixes the selected code directly using your Tech Skill and performs a lightweight memory check. |
+| **6. Onboard an Existing Project** | `@onboard` | Architect Agent reads `workspace/scan-report.md` and populates `PROJECT_MEMORY.md` + `features/*.md`. |
+| **7. Sync Manual Code Commits** | `@sync` *(or run `npx penta-agent-x sync` first)* | Doc Agent inspects Git history from `lastSyncedCommit..HEAD` and updates `PROJECT_MEMORY.md`, `features/*.md`, and `CHANGELOG_DOC.md`. |
 
 ---
 
 ### B. In **Claude Code (`claude` CLI)**, **Google Antigravity**, & **OpenAI Codex**
 
-Use slash commands (`/auto`, `/ba`, `/arch`, `/dev`, `/qa`, `/doc`, `/hotfix`, `/sync`, `/onboard`) directly in chat:
+Use slash commands (`/auto`, `/ask`, `/plan`, `/actionPlan`, `/ba`, `/arch`, `/dev`, `/qa`, `/doc`, `/hotfix`, `/sync`, `/onboard`) directly in chat:
 
 1. **Full Auto-Pilot Pipeline (A → Z):**
    ```text
    /auto Build Login with Email/Password and Google. UI mockup at ./designs/login.png
    ```
-2. **Granular Step-by-Step Control:**
+2. **Ask Project Questions (`/ask`) or Co-Plan Before Execution (`/plan` → `/actionPlan`):**
+   ```text
+   /ask How does our token refresh interceptor currently work?
+   /plan Let's discuss adding role-based access control to the dashboard
+   /actionPlan
+   ```
+3. **Granular Step-by-Step Control:**
    ```text
    /ba Build shopping cart feature...
    /arch
@@ -109,11 +120,11 @@ Use slash commands (`/auto`, `/ba`, `/arch`, `/dev`, `/qa`, `/doc`, `/hotfix`, `
    /qa
    /doc
    ```
-3. **Fast-Track Bugfix at a Specific File/Line (`/hotfix`):**
+4. **Fast-Track Bugfix at a Specific File/Line (`/hotfix`):**
    ```text
    /hotfix In @src/components/LoginForm.tsx line 45, disable the submit button while loading to prevent double-clicks.
    ```
-4. **Onboard Existing Codebase (`/onboard`) & Sync Manual Git Commits (`/sync`):**
+5. **Onboard Existing Codebase (`/onboard`) & Sync Manual Git Commits (`/sync`):**
    ```text
    /onboard
    /sync
