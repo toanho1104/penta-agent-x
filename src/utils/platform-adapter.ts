@@ -13,7 +13,7 @@ function getCommandRouterTable(platform: AIPlatform): string {
   const getTargetFile = (slug: string) => {
     switch (platform) {
       case 'cursor':
-        return `.cursor/commands/${slug}.md`;
+        return `.cursor/agents/${slug}.md`;
       case 'claude':
         return `.claude/commands/${slug}.md`;
       case 'antigravity':
@@ -84,9 +84,11 @@ async function generateCursorAdapter(
 ): Promise<void> {
   const platform: AIPlatform = 'cursor';
   const wsRel = getWorkspaceRelDir(platform);
+  const agentsDir = path.join(cwd, '.cursor', 'agents');
   const rulesDir = path.join(cwd, '.cursor', 'rules');
   const commandsDir = path.join(cwd, '.cursor', 'commands');
   const skillsDir = path.join(cwd, '.cursor', 'skills');
+  await fs.ensureDir(agentsDir);
   await fs.ensureDir(rulesDir);
   await fs.ensureDir(commandsDir);
   await fs.ensureDir(skillsDir);
@@ -112,9 +114,28 @@ ${getCommandRouterTable(platform)}
 `;
   await fs.writeFile(path.join(rulesDir, '00-workspace-core.mdc'), coreMdc, 'utf-8');
 
-  // 2. Individual @agent rules (.cursor/rules/*.mdc) AND /agent slash commands (.cursor/commands/*.md)
+  // 2. Native Cursor Custom Agents (.cursor/agents/<slug>.md)
+  // Plus .cursor/rules/<slug>.mdc and .cursor/commands/<slug>.md (/auto, /ask, /plan, /actionPlan...)
   for (const agent of allAgents) {
     const localizedPrompt = localizePromptPaths(agent.systemPrompt, platform);
+    const isReadonly = agent.slug === 'ask';
+
+    // 2a. Native Cursor Agent (.cursor/agents/<slug>.md)
+    const agentContent = `---
+name: ${agent.slug}
+description: "${agent.name} - ${agent.roleDescription}"
+readonly: ${isReadonly}
+---
+
+${localizedPrompt}
+`;
+    await fs.writeFile(
+      path.join(agentsDir, `${agent.slug}.md`),
+      agentContent,
+      'utf-8'
+    );
+
+    // 2b. Cursor Rule (.cursor/rules/<slug>.mdc)
     const mdcContent = `---
 description: ${agent.name} - ${agent.roleDescription}
 alwaysApply: false
@@ -123,33 +144,22 @@ alwaysApply: false
 ${localizedPrompt}
 `;
     await fs.writeFile(path.join(rulesDir, `${agent.slug}.mdc`), mdcContent, 'utf-8');
+
+    // 2c. Cursor Slash Command (.cursor/commands/<slug>.md)
     await fs.writeFile(
       path.join(commandsDir, `${agent.slug}.md`),
       localizedPrompt,
       'utf-8'
     );
+
+    // Clean up legacy agent folders inside .cursor/skills/<slug> so Cursor does not show Agents as Skills
+    const legacyAgentSkillDir = path.join(skillsDir, agent.slug);
+    if (await fs.pathExists(legacyAgentSkillDir)) {
+      await fs.remove(legacyAgentSkillDir);
+    }
   }
 
-  // 3. Modern Cursor Agent Skills (.cursor/skills/<slug>/SKILL.md)
-  for (const agent of allAgents) {
-    const localizedPrompt = localizePromptPaths(agent.systemPrompt, platform);
-    const agentSkillDir = path.join(skillsDir, agent.slug);
-    await fs.ensureDir(agentSkillDir);
-    const skillContent = `---
-name: ${agent.slug}
-description: "${agent.name} - ${agent.roleDescription}"
----
-
-${localizedPrompt}
-`;
-    await fs.writeFile(
-      path.join(agentSkillDir, 'SKILL.md'),
-      skillContent,
-      'utf-8'
-    );
-  }
-
-  // 4. Tech Skill rules with auto-matching globs for Cursor
+  // 3. Tech Skill rules with auto-matching globs for Cursor (.cursor/rules/tech-<id>.mdc)
   for (const skillId of installedSkills) {
     const skill = TECH_SKILLS_REGISTRY[skillId];
     if (!skill) continue;
@@ -170,6 +180,7 @@ ${localizedSkill}
     );
   }
 
+  // 4. Only Tech Skills go into .cursor/skills/<tech-skill>/SKILL.md
   await writePlatformSkills(cwd, platform, installedSkills);
 }
 

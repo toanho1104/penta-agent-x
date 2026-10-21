@@ -19,7 +19,7 @@
    - **Granular Step-by-Step Mode (`@ba`, `@arch`, `@dev`, `@qa`, `@doc`):** Invoke individual agents manually whenever fine-grained control is desired.
    - **Fast-Track Bugfix Mode (`@hotfix` / `/hotfix`):** Bypass multi-agent ceremony for targeted bugfixes and minor tweaks.
 3. **Cross-Platform Compatibility:**
-   - Single canonical source with automatic adapters generated for **Cursor IDE** (`.cursor/rules/*.mdc`, `.cursor/commands/*.md`, `.cursor/skills/*/SKILL.md`), **Claude Code CLI** (`.claude/agents/*.md`, `.claude/commands/*.md`, `.claude/skills/*/SKILL.md`, `CLAUDE.md`), **Google Antigravity** (`.agents/rules/`, `.agents/workflows/`, `.agents/skills/`), and **OpenAI Codex** (`AGENTS.md`, `.agents/skills/`).
+   - Single canonical source with automatic adapters generated for **Cursor IDE** (`.cursor/agents/*.md`, `.cursor/rules/*.mdc`, `.cursor/commands/*.md`, `.cursor/skills/<tech-skill>/SKILL.md`), **Claude Code CLI** (`.claude/agents/*.md`, `.claude/commands/*.md`, `.claude/skills/*/SKILL.md`, `CLAUDE.md`), **Google Antigravity** (`.agents/rules/`, `.agents/workflows/`, `.agents/skills/`), and **OpenAI Codex** (`AGENTS.md`, `.agents/skills/`).
 4. **NPM CLI Distribution:**
    - Initialize the full multi-agent system in any project (`init`), install modular tech skills (`add-skill`), run fast-track bugfixes (`hotfix`), and synchronize manual Git commits (`sync`).
 
@@ -96,9 +96,10 @@ All generated rules, commands, skills, and 3-tier memory live inside **a single 
 
 ```text
 .cursor/ (or .claude/ or .agents/)
-├── rules/ (or agents/ or workflows/)  # Native platform Agent rules & file-glob Tech Skills
+├── agents/                            # Native Custom Agents / Subagents (auto.md, ask.md, plan.md, actionPlan.md, ba.md, arch.md, dev.md, qa.md, doc.md...)
+├── rules/ (or workflows/)             # Native platform Rules & file-glob Tech Skill rules
 ├── commands/                          # Native Slash Commands (/auto, /ask, /plan, /actionPlan, /ba, /arch, /dev, /qa, /doc...)
-├── skills/                            # Native Agent & Tech Skills (<slug>/SKILL.md)
+├── skills/                            # Installed Pluggable Tech Skills (<tech-skill>/SKILL.md)
 └── workspace/                         # 3-Tier Context Memory & Pluggable Tech Skills
     ├── config.json                    # Workspace settings: active platform, installed tech skills.
     ├── PROJECT_MEMORY.md              # [Tier 1 - Global Map] Always kept concise (< 300 lines).
